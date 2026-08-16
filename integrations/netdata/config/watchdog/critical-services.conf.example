@@ -1,0 +1,21 @@
+# critical-services.conf — allowlist of systemd units "I care about".
+#
+# Used by TWO components:
+#   1. critical-services-check.sh (watchdog, timer every 60s)
+#      → pages CRITICAL when a listed unit is not in 'active' state,
+#        emits CLEAR on recovery. Catches long outages; may miss
+#        fast restarts (< 60s) due to poll cadence.
+#   2. lifecycle-watcher.sh (tails systemd journal, real-time)
+#      → fires WARNING on every Started / Stopped transition of a
+#        listed unit. Catches restarts of any duration.
+#
+# One unit per line. Lines starting with # and blank lines are ignored.
+# Absent file or empty allowlist ⇒ both components silently no-op.
+# After editing, the watchdog picks changes up on the next 60s tick;
+# the lifecycle-watcher picks them up within one event.
+#
+# Uncomment + edit per host:
+# nginx.service
+# postgresql.service
+# docker.service
+# redis-server.service

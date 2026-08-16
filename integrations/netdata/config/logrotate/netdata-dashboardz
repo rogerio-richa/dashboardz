@@ -1,0 +1,11 @@
+/opt/netdata-dashboardz/var/log/netdata-dispatch.log
+/opt/netdata-dashboardz/var/log/netdata-journal-watcher.err
+/opt/netdata-dashboardz/var/log/netdata-sudo-watcher.err
+/opt/netdata-dashboardz/var/log/netdata-lifecycle-watcher.err {
+    weekly
+    rotate 4
+    compress
+    missingok
+    notifempty
+    copytruncate
+}

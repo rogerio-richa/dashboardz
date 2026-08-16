@@ -1,0 +1,18 @@
+/*
+ * THE TYPECHECK GATE. `npm run typecheck` uses this; `npm run build` uses `tsconfig.json`.
+ *
+ * Same split and same reason as `hub/tsconfig.check.json`: the build's `rootDir`/`outDir` keep
+ * `test/` out of the published output, and kept it out of the typecheck too.
+ *
+ * `rootDir: "../.."` rather than `"."`, for the same reason relay's tsconfig.check.json needs
+ * `".."`: `test/hub-pin.test.ts` imports `../../../hub/src/...` directly, so the
+ * compilation root has to contain both this package and the hub. `clients/mcp` sits one directory
+ * deeper than `relay` does, so it takes one extra `..` to reach the same repo root. Checking this
+ * package therefore also parses the hub's sources, which needs `hub/node_modules` present —
+ * `npm ci` there is a prerequisite, not an optional convenience.
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": "../.." },
+  "include": ["src", "test"]
+}

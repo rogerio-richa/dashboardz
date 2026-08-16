@@ -1,0 +1,21 @@
+/*
+ * THE TYPECHECK GATE. `npm run typecheck` uses this; `npm run build` uses `tsconfig.json`.
+ *
+ * Same split, and the same reason, as `hub/tsconfig.check.json`: the build's `rootDir: "src"` and
+ * `outDir: "dist"` keep `test/` out of the published output, and kept it out of the typecheck too.
+ * Nothing checked these test files — vitest strips types rather than checking them.
+ *
+ * `rootDir: ".."` rather than `"."`, which the hub does not need: relay's integration tests boot a
+ * REAL hub and drive a REAL sender (`../hub/src/boot.ts`, `../clients/sender/src/client.ts`), so
+ * the compilation root has to contain all three packages. That cross-package reach is the point of
+ * those tests — they exist because a hand-wired app once skipped the exact ordering bug the relay
+ * shipped — so the config accommodates it rather than the tests being narrowed to suit the config.
+ *
+ * Checking relay therefore also parses hub's and sender's sources, which needs their `node_modules`
+ * present. `npm ci` in each is a prerequisite, not an optional convenience.
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": ".." },
+  "include": ["src", "test"]
+}

@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  hub-admin:
+    name: Hub and admin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            hub/package-lock.json
+            hub/admin/package-lock.json
+      - run: npm ci --prefix hub
+      - run: npm ci --prefix hub/admin
+      - run: npm --prefix hub/admin run build
+      - run: npm --prefix hub test
+      - run: npm --prefix hub run typecheck
+      - run: npm --prefix hub run build
+      - run: npm --prefix hub/admin test
+      - run: npm --prefix hub/admin run typecheck
+      - run: npm --prefix hub/admin run lint
+
+  relay-sender-mcp-claude:
+    name: Relay, clients, and Claude assistant
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            relay/package-lock.json
+            clients/sender/package-lock.json
+            clients/mcp/package-lock.json
+            integrations/claude/assistant/package-lock.json
+      - run: sh scripts/test-setup-dev.sh
+      - run: npm ci --prefix relay
+      - run: npm ci --prefix clients/sender
+      - run: npm ci --prefix clients/mcp
+      - run: npm ci --prefix integrations/claude/assistant
+      - run: npm --prefix relay test
+      - run: npm --prefix relay run typecheck
+      - run: npm --prefix relay run build
+      - run: npm --prefix clients/sender test
+      - run: npm --prefix clients/sender run typecheck
+      - run: npm --prefix clients/sender run build
+      - run: npm --prefix clients/mcp test
+      - run: npm --prefix clients/mcp run typecheck
+      - run: npm --prefix clients/mcp run build
+      - run: npm --prefix integrations/claude/assistant test
+      - run: npm --prefix integrations/claude/assistant run typecheck
+      - run: npm --prefix integrations/claude/assistant run build
+      - run: sh integrations/claude/hooks/test_hooks.sh
+
+  python-mkdocs-compose:
+    name: Python, MkDocs, and Compose
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-python@v7.0.0
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            integrations/meshtastic/requirements.txt
+            docs/requirements.txt
+      - run: python -m venv .venv
+      - run: .venv/bin/python -m pip install -r integrations/meshtastic/requirements.txt -r docs/requirements.txt
+      - run: .venv/bin/python -m unittest discover -s integrations/meshtastic -p 'test_*.py'
+      - run: .venv/bin/python -m mkdocs build --strict
+      - name: Validate Compose contract
+        shell: sh
+        run: |
+          set -eu
+          if (
+            unset ADMIN_PASSWORD PUBLIC_URL
+            docker compose --env-file /dev/null -f docker-compose.example.yml config >/dev/null 2>&1
+          ); then
+            echo 'Compose accepted missing ADMIN_PASSWORD and PUBLIC_URL.' >&2
+            exit 1
+          fi
+          ADMIN_PASSWORD=check-only-password PUBLIC_URL=http://192.0.2.10:8484 \
+            docker compose --env-file /dev/null -f docker-compose.example.yml config >/dev/null
+
+  android:
+    name: Android unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-java@v6.0.0
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v6.3.0
+      - run: ./apps/android/gradlew -p apps/android test
+
+  hub-docker:
+    name: Hub Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: docker build --tag dashboardz-hub:ci ./hub

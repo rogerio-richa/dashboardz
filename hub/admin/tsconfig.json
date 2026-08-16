@@ -1,0 +1,17 @@
+/*
+ * A BARE `npx tsc --noEmit` IN THIS DIRECTORY CHECKS NOTHING. `files` is empty and the real
+ * configs hang off `references`, which only `tsc -b` (project-build mode) follows — so the bare
+ * command exits 0 on a file with `const x: number = 'nope'` in it. That is not hypothetical: it is
+ * how a genuinely broken admin build could pass typechecking unnoticed: keep the admin build
+ * and source contract checks in the required project-build path.
+ *
+ * The real gates are `npm run typecheck` (`tsc -b`) and `npm run build` (`tsc -b && vite build`).
+ * Use those.
+ */
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
+}

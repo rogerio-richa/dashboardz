@@ -1,0 +1,15 @@
+[Unit]
+Description=Netdata systemd lifecycle watcher (Started/Stopped -> dispatch for allowlisted units)
+After=systemd-journald.service
+Wants=netdata-journal-watcher.service
+
+[Service]
+Type=simple
+ExecStart=/opt/netdata-dashboardz/bin/lifecycle-watcher.sh
+Restart=always
+RestartSec=5s
+StandardError=append:/opt/netdata-dashboardz/var/log/netdata-lifecycle-watcher.err
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target

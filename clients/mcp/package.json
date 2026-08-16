@@ -1,0 +1,27 @@
+{
+  "name": "dashboardz-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for a Dashboardz hub: screens, feeds, widgets and fit-checking for AI assistants",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "dashboardz-mcp": "dist/cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "node ../../scripts/check-typecheck-scope.mjs && tsc -p tsconfig.check.json"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^7.0.2",
+    "vitest": "^3.2.7"
+  }
+}

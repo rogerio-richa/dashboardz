@@ -1,0 +1,16 @@
+/*
+ * THE TYPECHECK GATE. `npm run typecheck` uses this; `npm run build` uses `tsconfig.json`.
+ *
+ * Same split and same reason as `hub/tsconfig.check.json`: the build's `rootDir`/`outDir` keep
+ * `test/` out of the published output, and kept it out of the typecheck too.
+ *
+ * `rootDir: "../../.."` reaches the repo root from integrations/claude/assistant/, allowing
+ * test files to import from parent packages if needed. Checking this package therefore also
+ * parses the sources it imports, which needs those packages' node_modules present —
+ * `npm ci` there is a prerequisite, not an optional convenience.
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": "../../.." },
+  "include": ["src", "test"]
+}

@@ -1,0 +1,18 @@
+services:
+  relay:
+    build: .
+    ports:
+      - "8790:8790"
+    environment:
+      # Set to "true" ONLY when a TLS-terminating reverse proxy (Caddy, nginx,
+      # Traefik) sits directly in front of the relay — it makes the relay trust
+      # X-Forwarded-For for rate limiting. See README.md ("TLS and reverse
+      # proxies") for why both wrong settings fail silently.
+      TRUST_PROXY: "false"
+      # Hub registrations persist here, so a restart cannot re-key a hub_uid to
+      # an impostor (the TOFU reset limitation — see README.md). Remove this and
+      # the volume below for a stateless relay, accepting that limitation.
+      STATE_PATH: /data/relay-state.json
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

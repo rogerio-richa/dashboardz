@@ -1,0 +1,15 @@
+[Unit]
+Description=Netdata sudo audit watcher (journalctl SYSLOG_IDENTIFIER=sudo -> dispatch)
+After=systemd-journald.service
+Wants=netdata-journal-watcher.service
+
+[Service]
+Type=simple
+ExecStart=/opt/netdata-dashboardz/bin/sudo-watcher.sh
+Restart=always
+RestartSec=5s
+StandardError=append:/opt/netdata-dashboardz/var/log/netdata-sudo-watcher.err
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target

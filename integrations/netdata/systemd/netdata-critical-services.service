@@ -1,0 +1,7 @@
+[Unit]
+Description=Netdata critical-services watchdog (one-shot; invoked by .timer)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/netdata-dashboardz/bin/critical-services-check.sh

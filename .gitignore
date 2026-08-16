@@ -1,0 +1,22 @@
+node_modules/
+dist/
+# Runtime state and generated output are anchored to their repository locations.
+/hub/data/
+/integrations/meshtastic/data/
+.scratch/
+.superpowers/
+.worktrees/
+.claude/worktrees/
+*.db
+*.db-*
+hub/static/admin/
+site/
+.env
+.env.bak-*
+/docker-compose.yml
+/.venv/
+*.tsbuildinfo
+__pycache__/
+# Local build output and tool state.
+/site/
+/.codex/

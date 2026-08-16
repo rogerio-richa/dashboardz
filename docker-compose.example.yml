@@ -1,0 +1,16 @@
+services:
+  hub:
+    build: ./hub
+    ports:
+      - "8484:8484"
+    environment:
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?set ADMIN_PASSWORD in .env}
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in .env}   # LAN address devices will reach
+    volumes:
+      - ./data:/data
+      # Uncomment for widget authoring: serves the live ./hub/static tree instead of the copy baked
+      # into the image, so a catalogue.mjs edit or an admin rebuild lands without
+      # `docker compose up --build`. Run `npm run build` in hub/admin at least once first — the
+      # mount shadows the image's built admin bundle, and an unbuilt tree means a broken admin UI.
+      # - ./hub/static:/app/static
+    restart: unless-stopped

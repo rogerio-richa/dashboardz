@@ -1,0 +1,788 @@
+/*
+ * The console's visual system.
+ *
+ * THE POSITION, and everything below follows from it: this is a workbench, not a display. The
+ * boards are the glowing objects; the bench they are built on has to be neutral, because you
+ * cannot judge a palette against chrome that has opinions of its own. Photographers and print
+ * shops mount work on neutral grey for exactly this reason.
+ *
+ * So the console is MONOCHROME. There is no brand accent and no decorative hue anywhere in it.
+ * The only colour in the entire admin belongs to (a) the themes the operator is authoring and
+ * (b) the product's own severity vocabulary — info, warn, critical — used strictly for status and
+ * never for decoration. Once colour is scarce, a theme's own colours become the loudest thing on
+ * screen, which is the whole point: the page where you pick a theme should be a page where you
+ * can SEE the themes.
+ *
+ * If you are tempted to add an accent colour here, add it to a theme instead.
+ *
+ * Warm neutral rather than the blue-grey every admin defaults to: the boards skew warm (amber
+ * warns, red criticals, the nixie and segment faces) and a cool bench makes them read sickly.
+ *
+ * No dark mode, deliberately. A dark console would defeat the colour-judgement argument above.
+ * It is one media query away if that trade stops being worth it.
+ */
+
+:root {
+  /* The bench. */
+  --ground: #e9e7e2;
+  --panel: #fcfbf9;
+  --panel-alt: #f4f2ee;
+  --ink: #191817;
+  --ink-soft: #423f3a;
+  --muted: #6e6a63;
+  --line: #d6d2ca;
+  --line-strong: #bab5ab;
+
+  /* Status only. The same three severities the boards speak. Never decoration. */
+  --ok: #2c6b4f;
+  --info: #2f6f9f;
+  --warn: #8a6206;
+  --critical: #a32b25;
+
+  --radius: 6px;
+  --radius-panel: 10px;
+
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Anything the operator types, copies, or compares character by character. */
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 14px/1.5 var(--sans);
+  /* Every number in this console lines up in its column, whatever it is sitting next to. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── shell ─────────────────────────────────────────────────────────────────────────────── */
+
+/*
+ * Login is the identity moment before the neutral workbench: the official bolt gets the only
+ * decorative colour, while the controls inherit the console's ordinary materials and type.
+ */
+.login {
+  width: min(320px, calc(100% - 32px));
+  margin: 20vh auto 0;
+  display: grid;
+  gap: 8px;
+}
+
+.login-mark {
+  width: 56px;
+  height: auto;
+  margin-bottom: 12px;
+  justify-self: center;
+}
+
+.login-help {
+  margin-top: 4px;
+  justify-self: center;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.login [role="alert"] { margin: 4px 0 0; color: var(--critical); }
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+main > h1 {
+  margin: 0 0 20px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+main > nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ── panels ────────────────────────────────────────────────────────────────────────────── */
+
+section {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-panel);
+  padding: 24px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+h3 {
+  margin: 24px 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+p { margin: 0 0 12px; color: var(--ink-soft); }
+
+hr { border: 0; border-top: 1px solid var(--line); margin: 24px 0; }
+
+a { color: var(--ink); text-decoration-color: var(--line-strong); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--ink); }
+
+/* ── controls ──────────────────────────────────────────────────────────────────────────── */
+
+button {
+  font: 500 13px/1 var(--sans);
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+button:hover { background: var(--panel-alt); border-color: var(--muted); }
+
+/* One pixel of key travel. A console's buttons should feel pressed, and this is the only
+   motion in the whole interface. */
+button:active { transform: translateY(1px); }
+
+button:disabled {
+  color: var(--muted);
+  background: var(--panel-alt);
+  border-color: var(--line);
+  cursor: default;
+  transform: none;
+}
+
+/* The current tab. `disabled` is how the shell marks it, so this is the real state, not a
+   decoration bolted on top — an inked key, held down. Declared after the generic disabled rule
+   above so it wins on the nav only. */
+main > nav button:disabled {
+  color: var(--ground);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+input, select, textarea {
+  font: 400 13px/1.4 var(--sans);
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 6px 8px;
+}
+
+/* Typed, copied, compared character by character — that is data, and data is set in mono. */
+input[type="text"], input[type="password"], input[type="number"], input:not([type]), textarea {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+input::placeholder { color: var(--muted); }
+
+select { padding-right: 6px; }
+
+input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+
+input[type="radio"], input[type="checkbox"] {
+  accent-color: var(--ink);
+  padding: 0;
+  border: 0;
+}
+
+label { color: var(--ink-soft); }
+
+/* One ring, everywhere, in ink. Monochrome applies to focus too. */
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ── tables ────────────────────────────────────────────────────────────────────────────── */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 20px;
+}
+
+thead th {
+  text-align: left;
+  font: 600 10.5px/1 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 10px 8px;
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover td { background: var(--panel-alt); }
+
+/* Buttons sitting in a row are secondary to the row itself. */
+tbody td button { padding: 5px 10px; font-size: 12px; }
+
+code, pre {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--panel-alt);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+pre { padding: 12px; overflow-x: auto; }
+
+/* ── status ────────────────────────────────────────────────────────────────────────────── */
+/*
+ * The only chromatic elements in the console, and they mean exactly what they mean on a board.
+ * Applied where a page already carries the word, so the colour is a reading of the content
+ * rather than a badge invented for it.
+ */
+
+[data-status="online"], [data-status="ok"] { color: var(--ok); }
+[data-status="info"] { color: var(--info); }
+[data-status="warn"] { color: var(--warn); }
+[data-status="critical"], [data-status="offline"] { color: var(--critical); }
+
+/* ── the quality floor ─────────────────────────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  button:active { transform: none; }
+}
+
+@media (max-width: 760px) {
+  main { padding: 20px 14px 64px; }
+  section { padding: 16px; border-radius: 8px; }
+  thead th, tbody td { padding-left: 6px; padding-right: 6px; }
+}
+
+/* A form and the table it feeds are two things, not one — the Devices page ran them together. */
+form + table { margin-top: 20px; }
+form + div + table { margin-top: 8px; }
+
+/* ── modal ─────────────────────────────────────────────────────────────────────────────── */
+/*
+ * Elevation exists in exactly one place in this console, and this is it. A modal has to read as
+ * being IN FRONT of the page rather than part of it, which a hairline border alone cannot say.
+ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(25, 24, 23, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 100;
+}
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-panel);
+  box-shadow: 0 12px 32px rgba(25, 24, 23, 0.22);
+  padding: 20px 22px 18px;
+  max-width: 440px;
+  width: 100%;
+}
+
+.modal h2 { margin: 0 0 8px; font-size: 15px; }
+.modal p { margin: 0 0 18px; color: var(--muted); font-size: 13px; }
+
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── guided connection setup ───────────────────────────────────────────────────────────── */
+
+.source-setup-backdrop { overflow-y: auto; }
+
+.source-setup-dialog {
+  max-width: 760px;
+  max-height: min(760px, calc(100vh - 48px));
+  overflow-y: auto;
+}
+
+.source-setup-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.source-setup-header > div { min-width: 0; }
+.source-setup-header p { margin-bottom: 0; }
+
+.source-choice-flow,
+.source-setup-form,
+.source-real-preview { display: grid; gap: 18px; margin-top: 16px; }
+
+.source-choice-section > h3 {
+  margin: 0 0 9px;
+  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.source-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 8px;
+}
+
+button.source-choice-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 12px;
+  text-align: left;
+  line-height: 1.35;
+}
+
+.source-choice-card > span { color: var(--muted); font-weight: 400; }
+
+.source-recommended {
+  color: var(--ink) !important;
+  font-size: 10px;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.source-optional-details {
+  display: grid;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.source-choice-card .source-optional-details { margin-top: 4px; }
+
+.source-fields,
+.source-coordinate-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.source-field { display: grid; gap: 4px; min-width: 0; }
+.source-field > span { font-size: 12px; font-weight: 600; }
+.source-field > small { color: var(--muted); font-size: 10.5px; }
+.source-field input, .source-field select { width: 100%; box-sizing: border-box; }
+
+.source-city-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: end;
+}
+
+.source-city-field > .source-error,
+.source-place-list { grid-column: 1 / -1; }
+
+.source-place-list {
+  display: grid;
+  gap: 3px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-alt);
+}
+
+.source-place-list button { text-align: left; }
+
+.source-advanced {
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--panel-alt);
+}
+
+.source-advanced summary { cursor: pointer; font-weight: 600; }
+.source-advanced[open] summary { margin-bottom: 10px; }
+.source-advanced .source-field + .hint { margin-bottom: 0; }
+
+.source-setup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.source-error {
+  margin: 0;
+  color: var(--critical);
+  font-size: 12px;
+}
+
+/* ── connection basement (Data sources) ────────────────────────────────────────────────── */
+
+/*
+ * One row per persistent connection. The health word is the only coloured thing in the row: an
+ * operator scanning this table is looking for the one line that is not green, and colouring the
+ * timestamps or the usage count as well would give that scan three things to reject instead of one.
+ */
+.connections .connection-health { font-weight: 600; }
+.connections .connection-health.is-healthy { color: var(--ok); }
+.connections .connection-health.is-needs { color: var(--critical); }
+.connections .connection-health.is-paused { color: var(--muted); }
+
+.connections .connection-sub {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* The two Advanced disclosures stack under the table and must not run into it, or each other. */
+section > .source-advanced { margin-top: 18px; }
+.source-advanced + .source-advanced { margin-top: 12px; }
+
+/* A real-data test can return a long document. Show enough to recognise it, then scroll. */
+.source-real-preview pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 6px 0 0;
+}
+
+.source-testing {
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  min-height: 180px;
+  text-align: center;
+}
+
+.source-testing p { margin: 0; }
+.source-testing-mark { color: var(--muted); letter-spacing: 0.35em; }
+.source-real-preview .widget-preview-frame { justify-self: center; }
+
+@media (max-width: 620px) {
+  .source-setup-backdrop { padding: 10px; }
+  .source-setup-dialog { max-height: calc(100vh - 20px); padding: 16px; }
+  .source-setup-header { gap: 8px; }
+}
+
+/*
+ * The destructive verb is the one button in the console allowed to be loud, and it borrows the
+ * board's own `critical` rather than inventing a red. Consistent with the rule: colour means
+ * severity, never decoration.
+ */
+button.danger {
+  color: var(--panel);
+  background: var(--critical);
+  border-color: var(--critical);
+}
+button.danger:hover { background: #8f2620; border-color: #8f2620; }
+
+/* ── the screen editor ─────────────────────────────────────────────────────────────────── */
+/*
+ * The editor is a MODE, not a strip under the list. Two columns: what you are editing on the
+ * left, what it will look like on the right.
+ */
+
+/*
+ * The canvas is the thing being worked on, so it gets the room. The inspector is a fixed, narrow
+ * column beside it rather than an equal half — it holds a handful of controls and was taking the
+ * space the board needed to be legible at the size it will actually be.
+ */
+.editor { display: flex; gap: 20px; margin-top: 4px; align-items: flex-start; }
+.editor > form { flex: 0 0 286px; min-width: 0; }
+.editor > div { flex: 1; min-width: 0; }
+
+/*
+ * A titled block per concern keeps presets, numeric controls, removal, and widget selection from
+ * appearing as four unrelated jobs.
+ */
+.edit-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 11px;
+  margin: 0 0 10px;
+  background: var(--panel-alt);
+}
+
+.edit-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.edit-card-head h3 {
+  margin: 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* A small explanatory aside, not an error and not a label — e.g. "no device is showing this
+   screen yet, picking from any online device instead" under the sound test-on-device row. */
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 4px 0 0;
+}
+
+/*
+ * Presets as pictures of themselves. Fourteen text buttons took four rows and still asked you to
+ * imagine what "quad TL" looked like; the same fourteen as small diagrams take three shorter rows
+ * and answer the question directly.
+ */
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 3px;
+  /* The gap that says "these are the same control, coarse and fine". */
+  margin-bottom: 11px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--line);
+}
+
+button.preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 2px 4px;
+  line-height: 1.1;
+  color: var(--ink-soft);
+}
+
+button.preset svg { margin: 0; vertical-align: baseline; }
+button.preset span { font-size: 9px; letter-spacing: 0.01em; color: var(--muted); }
+button.preset:hover span { color: var(--ink); }
+
+.rect-fields { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
+.rect-fields label { font-size: 12px; color: var(--muted); }
+.rect-fields input { width: 66px; margin-left: 4px; }
+
+/* ── widget catalogue ──────────────────────────────────────────────────────────────────── */
+
+.design-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
+
+.design-preview { margin: 0; }
+
+/* Previews sit on the board's own background, because that is what they will be drawn on. */
+.widget-preview-canvas {
+  display: block;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: #0b0d12;
+}
+
+.widget-preview-frame {
+  position: relative;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.widget-preview-unavailable {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  color: #8a90a0;
+  background: #0b0d12;
+  font: 12px/1.35 var(--sans);
+}
+
+/* `.legacy-widget-preview` and `.lightweight-badge` went with the lightweight preview itself
+   Every widget type has a canvas design now, so the component that
+   emitted both classes has no reachable input and was deleted rather than kept warm. Verified
+   before removing — nothing in admin/src or static/ still names either class. */
+
+.design-preview figcaption {
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.design-preview code { background: none; border: 0; padding: 0; }
+
+/* Name above, slug below — "Digital digital" on one line read as a stutter. */
+.design-preview figcaption code { display: block; margin-top: 1px; }
+
+.widget-gallery { display: grid; gap: 22px; }
+
+.widget-gallery-group > h3 {
+  margin: 0 0 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.widget-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 10px;
+}
+
+button.widget-gallery-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  overflow: hidden;
+  text-align: left;
+  line-height: 1.35;
+}
+
+button.widget-gallery-card[aria-selected="true"] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* Sound-family chip in the SoundMixer's expanded row picker — same selected idiom as above. */
+button.sound-chip {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+button.sound-chip[aria-selected="true"] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.widget-gallery-card .widget-preview-frame { align-self: center; }
+
+.widget-gallery-card > strong { font-size: 13px; }
+.widget-gallery-card > span:last-child { color: var(--muted); font-weight: 400; }
+
+/*
+ * The orientation glyph is a geometric rectangle, not an emoji, so it inherits the text colour —
+ * but at body size a 6px-tall box is a smudge. Sized up to read at a glance.
+ */
+.orientation { font-size: 20px; line-height: 1; color: var(--ink-soft); }
+
+/* Counts and shapes are compared down a column, so they sit under their heading, not beside it. */
+th.center, td.center { text-align: center; }
+
+/* The tab icon sits just off its label rather than crowding it, and aligns on the text baseline. */
+main > nav button svg { margin-right: 6px; vertical-align: -2px; }
+
+/* The widget a card is, stated rather than offered — it cannot change once the card exists. */
+.card-widget {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.card-warn { margin: 10px 0 0; font-size: 12px; color: var(--warn); }
+
+/* Picking the widget and adding the card are one action in two parts. */
+.add-row { display: flex; gap: 6px; align-items: center; margin-bottom: 12px; }
+
+/* An icon inside a button rides with the label rather than sitting apart from it. */
+button svg { vertical-align: -2px; margin-right: 5px; }
+
+/* The board's own controls: what it is being designed for, and what to add to it. */
+.board-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  margin-top: 10px;
+}
+
+.board-bar { font-size: 12px; }
+.board-bar span { color: var(--muted); }
+.board-controls .add-row { margin-bottom: 0; }
+
+.navbars-row { display: flex; flex-wrap: wrap; gap: 12px; }
+.navbars-row label { font-size: 12.5px; }
+.hint { margin: 8px 0 0; font-size: 11.5px; color: var(--muted); }
+
+/* Row actions are separate verbs, not one control — they need air between them. */
+tbody td button + button { margin-left: 6px; }
+
+/*
+ * Four verbs in a cell wrap into a ragged strip on any narrow window. Stacked, they read as the
+ * row's menu: one column, labels left-aligned so the icons line up down the stack.
+ */
+.row-actions { display: inline-flex; flex-direction: column; align-items: stretch; gap: 4px; }
+.row-actions button { text-align: left; }
+tbody td .row-actions button + button { margin-left: 0; }
+
+/* The name-plus-create row every tab opens with: one field, one verb, air between them. */
+.add-form { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* A hint reads as the table's preamble, not its first row — give the table its own start. */
+.hint + table { margin-top: 14px; }
+
+/* A page heading with its one primary action on the far side. */
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.page-head h2 { margin: 0; }
+.page-head { margin: 0 0 16px; }
+
+/* The way back from a sub-view, worn by the heading itself: "Screens › Kitchen". */
+h2 .crumb {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+h2 .crumb:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+h2 .crumb-sep { color: var(--muted); font-weight: 400; margin: 0 6px; }
+
+/* A button that is only its icon has no label to space off of. */
+button.icon-button svg { margin-right: 0; }
+
+/* Relay badge — the one piece of header chrome. Colour here is status, not decoration,
+   matching the tab bar's rule that colour is reserved for meaning. */
+.masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.relay-badge { position: relative; }
+.relay-badge > button { font-size: 0.85rem; }
+.relay-dot { display: inline-block; width: 0.6em; height: 0.6em; border-radius: 50%; margin-right: 0.4em; }
+.relay-dot.good { background: var(--ok); }
+.relay-dot.warn { background: var(--warn); }
+.relay-dot.bad { background: var(--critical); }
+.relay-dot.muted { background: var(--muted); }
+.relay-dialog {
+  position: absolute; right: 0; top: 100%; z-index: 20; min-width: 22rem; max-width: 90vw;
+  background: var(--panel); border: 1px solid var(--line-strong); border-radius: 6px;
+  padding: 0.75rem 1rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); text-align: left;
+}
+.relay-dialog dt { font-weight: 600; margin-top: 0.5rem; }
+.relay-dialog dd { margin: 0; }
+.relay-error { color: var(--critical); }
+.relay-config { display: grid; gap: 8px; margin-top: 0.5rem; }
+.relay-config .source-setup-actions { border-top: none; padding-top: 0; justify-content: flex-start; }

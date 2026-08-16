@@ -1,0 +1,12 @@
+/*
+ * THE TYPECHECK GATE. `npm run typecheck` uses this; `npm run build` uses `tsconfig.json`.
+ *
+ * Same split and same reason as `hub/tsconfig.check.json`: the build's `rootDir`/`outDir` keep
+ * `test/` out of the published output, and kept it out of the typecheck too. Unlike relay's, these
+ * tests stay inside their own package, so `rootDir: "."` is enough.
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "noEmit": true, "rootDir": "." },
+  "include": ["src", "test"]
+}

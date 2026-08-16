@@ -1,0 +1,52 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: gradle
+    directory: /apps/android
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: pip
+    directory: /docs
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: pip
+    directory: /integrations/meshtastic
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /hub
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /hub/admin
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /relay
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /clients/sender
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /clients/mcp
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+  - package-ecosystem: npm
+    directory: /integrations/claude/assistant
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5

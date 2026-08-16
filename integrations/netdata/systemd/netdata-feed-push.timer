@@ -1,0 +1,10 @@
+[Unit]
+Description=Run Netdata -> dashboardz feed push every ~15s
+
+[Timer]
+OnBootSec=20s
+OnUnitActiveSec=15s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

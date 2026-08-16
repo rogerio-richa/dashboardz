@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh /PATH/TO/dashboardz/integrations/claude/hooks/needs-attention.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh /PATH/TO/dashboardz/integrations/claude/hooks/attention-over.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sh /PATH/TO/dashboardz/integrations/claude/hooks/attention-over.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

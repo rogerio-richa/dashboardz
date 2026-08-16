@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Device</title>
+  <style>
+    :root { --bg: #0b0d12; --card: #12141c; --text: #e6e9f0; --dim: #8a90a0;
+            --info: #4a90d9; --warn: #f0a020; --critical: #e0323c;
+            --hairline: #ffffff14; --muted: #a8adbd; --chip: #c0c5d0; --border: #2a2e38;
+            --surface-warn: #141826; --surface-critical: #1a1216;
+            --takeover-bg: #2a080c; --takeover-meta: #ff8a90; --takeover-body: #ffb4b8;
+            --takeover-hint-bg: #1c202a;
+            --on-critical: #fff;
+            /* Monitored-and-quiet dot (tabs). Not yet theme-tokenised — same gap as accent. */
+            --ok: #3f9c5a; }
+    * { margin: 0; box-sizing: border-box; }
+    body { background: var(--bg); color: var(--text); font-family: system-ui; height: 100vh; overflow: hidden; }
+    /* Counter-rotation (orientation.mjs). The body is laid out at the CONFIGURED aspect — width
+       and height swapped — and then turned 90deg about its own top-left, which is why `left:100%`
+       is what brings it back over the viewport. Everything inside lays out and MEASURES in the
+       un-rotated box (clientWidth/clientHeight ignore transforms), so canvas designs size their
+       backing stores correctly and taps still land where they appear. */
+    body.rotated { position: fixed; top: 0; left: 100%; width: 100vh; height: 100vw;
+                   transform-origin: 0 0; transform: rotate(90deg); }
+    body.rotated #idle, body.rotated #pairing, body.rotated #splash, body.rotated #takeover { height: 100vw; }
+    #splash { display: grid; place-items: center; height: 100vh; }
+    #pairing { display: grid; place-items: center; height: 100vh; }
+    #pairing form { display: grid; gap: 8px; width: 260px; }
+    #pairing input, #pairing button { padding: 10px; font-size: 16px; }
+    #idle { display: none; height: 100vh; padding: 16px; flex-direction: column; }
+    #idle.landscape-active { flex-direction: row; gap: 16px; }
+    #clockpane { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    #idle.landscape-active #clockpane { flex: 0 0 38%; }
+    #clock { font-size: 14vmin; font-weight: 200; letter-spacing: 2px; }
+    #date, #status { color: var(--dim); font-size: 2.2vmin; margin-top: 4px; }
+    #alerts { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden; }
+    #idle.landscape-active #alerts { justify-content: center; }
+    .card { background: var(--card); border-left: 4px solid var(--info); border-radius: 8px; padding: 10px 12px; }
+    .card.warn { border-color: var(--warn); background: var(--surface-warn); }
+    .card.critical { border-color: var(--critical); background: var(--surface-critical); }
+    .card .meta { font-size: 12px; color: var(--dim); display: flex; justify-content: space-between; }
+    .card .title { font-size: 17px; font-weight: 600; margin-top: 4px; }
+    .card .body { font-size: 13px; color: var(--muted); margin-top: 3px; display: -webkit-box;
+                  -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+    .card .foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px;
+                  border-top: 1px solid var(--hairline); padding-top: 6px; font-size: 12px; color: var(--dim); }
+    .card button { background: none; border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 4px 14px; }
+    /* Answer options: bigger tap targets than the foot's Dismiss — these are the buttons a sender
+       is actively waiting on, and the wall is glanced at from arm's length. */
+    .card .opts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .card .opts button { padding: 8px 18px; font-size: 15px; }
+    #chips { display: flex; flex-direction: column; gap: 4px; }
+    .chip { font-size: 12px; color: var(--chip); background: var(--card); border-radius: 5px; padding: 4px 8px; }
+    #offline { display: none; background: var(--critical); color: var(--on-critical); text-align: center; padding: 6px; }
+    /* user-select/touch-callout OFF: in an Android WebView a long-press on text starts the OS
+       text-selection gesture, which fires pointercancel on the
+       hold — so "Hold to dismiss" SELECTED ITS OWN LABEL instead of dismissing. The takeover is
+       an alarm surface, not a document; nothing on it is ever copy-worthy. touch-action:
+       manipulation kills the double-tap-zoom delay on the same buttons for the same reason. */
+    #takeover { display: none; position: fixed; inset: 0; background: var(--takeover-bg); border: 6px solid var(--critical);
+                z-index: 10; padding: 4vmin; flex-direction: column;
+                user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+                touch-action: manipulation; }
+    #takeover .meta { color: var(--takeover-meta); letter-spacing: 2px; font-size: 2.4vmin; }
+    #takeover .title { font-size: 7vmin; font-weight: 700; margin: auto 0 0; }
+    #takeover .body { font-size: 3vmin; color: var(--takeover-body); margin: 1vmin 0 auto; }
+    #takeover .actions { display: flex; gap: 12px; }
+    #takeover .actions > * { flex: 1; padding: 2.5vmin; font-size: 2.6vmin; border-radius: 10px; border: 0; }
+    #silence-hint { background: var(--takeover-hint-bg); color: var(--text); text-align: center; }
+    #dismiss-btn { background: var(--critical); color: var(--on-critical); }
+    /* Not a CSS grid since the free-rect model: renderGrid sets display:block + position:relative
+       inline and each .cell places itself absolutely from rectToPx. flex:1 is all that survives —
+       gap and padding described a frame and gutter that boards no longer have. */
+    /* touch-action:none — the grid owns its own gestures now (device.js's widget pointer routing,
+       scrollable stream). Without it the WebView claims a vertical drag as a page scroll
+       attempt and stops delivering pointermove, which kills a stream/scroll drag after ~10px. The
+       page has never scrolled, so there is no native behaviour being given up. */
+    #grid { flex: 1; touch-action: none; }
+    /* Persistent bottom tab bar (tabs, tab-bar behavior). A flex sibling of #grid inside #idle's own
+       column, not an overlay — #grid's flex:1 above claims whatever height this leaves it, so
+       renderGrid's own clientWidth/clientHeight re-fit (device.js) shrinks the board automatically
+       with no coordination needed between the two. Hidden by default (`display:none` inline,
+       matching #grid's own inline default) — device.js's renderTabBar toggles it to `flex` only
+       when tabBarModel says 2+ tabs exist; a 0/1-tab device never lays out an empty bar. */
+    #tabbar { flex: 0 0 auto; display: none; gap: 2px; margin-top: 8px; align-items: stretch; }
+    /* The strip scrolls (tabs, arrows). Tabs live in a scroller rather than directly in #tabbar,
+       where a flex item's default `min-width: auto` refuses to shrink past its own label: past ~11 tabs the
+       row was wider than the bar and the rest was CLIPPED, with no affordance — a tab could be the
+       ACTIVE one and still be invisible in its own strip. Now they live in a scroller between two
+       arrow buttons, and `min-width` on .tab-btn is the floor that makes overflow happen on purpose
+       instead of the labels degrading to ellipses. */
+    .tab-scroller { flex: 1 1 auto; display: flex; gap: 2px; overflow: hidden; scroll-behavior: smooth; }
+    .tab-arrow { flex: 0 0 auto; width: 44px; min-height: 48px; display: none;
+                 align-items: center; justify-content: center; background: var(--card);
+                 color: var(--dim); border: 0; border-radius: 6px; font: inherit; font-size: 18px;
+                 line-height: 1; padding: 0; }
+    /* Shown only while the strip actually overflows: a two-tab device grows no chrome. Disabled at
+       an end rather than hidden — a control that vanishes under the thumb is worse than a dim one. */
+    .tab-arrow.shown { display: flex; }
+    .tab-arrow[disabled] { opacity: 0.35; }
+    /* `flex: 1 1 auto` + a floor: few tabs still stretch to fill the bar exactly as before, many
+       stop at 96px and the scroller takes over. One rule, both behaviours. */
+    .tab-btn { flex: 1 1 auto; min-width: 96px; min-height: 48px; display: flex; align-items: center; justify-content: center;
+               gap: 8px; background: var(--card); color: var(--dim); border: 0;
+               border-top: 3px solid transparent; border-radius: 6px; font: inherit; font-size: 13px;
+               padding: 4px 10px; }
+    /* Active = accent underline + raised contrast — the underline borrows --info, the same
+       colour an unthemed board's `accent` already equals (theme.mjs BUILTIN_BOARD), rather than a
+       new custom property nothing else would ever set. */
+    .tab-btn.active { color: var(--text); border-top-color: var(--info); background: var(--bg); }
+    .tab-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* Status dot — same severity colours the alert cards above key off (`.card.warn`/`.card.critical`
+       border-color), so a lit tab and a lit alert card read as the same signal. */
+    /* Bar placement (tabs, per-screen declaration). The active screen's grid.tab_bar picks
+       one of these classes on #idle; the hub guarantees every tab in a list agrees, so the bar
+       never teleports mid-switch. Default (no class) = the original bottom bar. `order: -1` moves
+       the bar before the (hidden) clockpane/alerts/grid siblings instead of re-parenting DOM. */
+    #idle.tabbar-top #tabbar { order: -1; margin: 0 0 8px 0; }
+    #idle.tabbar-left, #idle.tabbar-right { flex-direction: row; }
+    #idle.tabbar-left #tabbar, #idle.tabbar-right #tabbar {
+      flex-direction: column; width: 96px; margin: 0; }
+    /* A side bar runs down the screen, so its scroller and its tabs stack — same arithmetic in
+       device-core, just the other pair of sizes (scrollHeight/clientHeight/scrollTop). */
+    #idle.tabbar-left .tab-scroller, #idle.tabbar-right .tab-scroller { flex-direction: column; }
+    #idle.tabbar-left .tab-arrow, #idle.tabbar-right .tab-arrow { width: auto; min-height: 44px; }
+    #idle.tabbar-left .tab-btn, #idle.tabbar-right .tab-btn { min-width: 0; }
+    #idle.tabbar-left #tabbar { order: -1; margin-right: 8px; }
+    #idle.tabbar-right #tabbar { margin-left: 8px; }
+    /* Side bars mark the active tab on their inner edge — a top border on a vertical stack reads
+       as a stray divider, not a selection. */
+    #idle.tabbar-left .tab-btn, #idle.tabbar-right .tab-btn { border-top: 0; border-left: 3px solid transparent; }
+    #idle.tabbar-left .tab-btn.active, #idle.tabbar-right .tab-btn.active { border-left-color: var(--info); }
+    .tab-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+    .tab-dot--info { background: var(--info); }
+    .tab-dot--warn { background: var(--warn); }
+    .tab-dot--critical { background: var(--critical); }
+    /* Monitored-and-quiet (hub sends 'ok' for tabs whose feeds could alert and aren't). A muted
+       green, calm on purpose: all-clear must not compete with a real severity for attention. */
+    .tab-dot--ok { background: var(--ok); }
+    /* Unseen stream rows on a background tab: the dot pulses until the tab is opened (switchTab
+       clears it). A tab with no severity dot pulses a neutral one — activity is not an alert. */
+    .tab-dot--unseen { background: var(--dim); }
+    .tab-dot--blink { animation: tab-dot-blink 1.2s ease-in-out infinite; }
+    @keyframes tab-dot-blink { 50% { opacity: 0.15; } }
+    .cell { display: flex; flex-direction: column; overflow: hidden; }
+    /* The `cards` backdrop kind draws NOTHING here on purpose: the card is cell content, painted
+       by the widget pipeline (widgets/index.mjs paintCardChrome) onto each cell's own canvas —
+       CSS chrome would be invisible to a recording surface and silently absent on a non-browser
+       renderer. */
+    .cell .clock-date { color: var(--dim); text-align: center; }
+    .cell .placeholder { border: 2px dashed var(--dim); color: var(--dim); display: flex; align-items: center; justify-content: center; text-align: center; }
+    /* A cell smaller than its widget's minimum. Deliberately readable at any size the cell can
+       actually be — a "too small" notice that is itself clipped tells the operator nothing. */
+    .cell .too-small { flex: 1; font-size: 11px; padding: 2px; }
+    .cell .widget-canvas { display: block; width: 100%; height: 100%; }
+    /* Data widgets (data widgets design). Nothing here scrolls or animates — overflow is
+       handled entirely by the plan-then-clamp/ellipsis arithmetic in device.js.
+
+       The `.tile` cluster that lived here — `.tile`, `.tile > *`, `.tile-label`, `.tile-value`,
+       `.tile-unit`, `.gauge-track`, `.gauge-fill`, `.gauge-ring`, `.gauge-ring-inner` — is gone,
+       along with `.text-block` below. `value_tile`, `gauge` and `text_block` are canvas designs
+       now (widgets/value/tile.mjs, widgets/gauge/{bar,ring}.mjs, widgets/text/block.mjs), so
+       `widgetHtml` returns a `<canvas class="widget-canvas">` for all three and nothing emits a
+       `.tile`, `.tile-*`, `.gauge-*` or `.text-block` element any more. device.js's whole fit
+       negotiation (`shrinkToFit`/`tileFits`/`fitBudget`/`contentSpan`, and layout-core's
+       `FIT_PLAN`) went with them — each design does its own shrink-to-fit on the canvas instead.
+
+       `--gauge-hole` is now retired too (widget contract): it was the ring
+       gauge's donut-hole colour, and the `.gauge-ring-inner` rule above was its only CSS reader,
+       so once that rule died it was read by nothing. The capability lives on as
+       `gauge/ring.mjs`'s own `hole` design token instead. */
+    /* stream_list text sizes come from STREAM_RAMP via an inline font-size device.js sets per cell
+       (they scale with the widget's `scale` knob), so there is deliberately no font-size here — a
+       value in this stylesheet would just be dead, misleading duplication.
+       `.data-table`/`.data-table th`/`.data-table td` lived here before canvas rendering:
+       `table` is a canvas design now (widgets/table/grid.mjs) and device.js no longer emits
+       a `<table>` element, so nothing paints these rules any more — verified via a grep across
+       static/, admin/ and test/ before deleting them (only device.js's own now-deleted branch and
+       this stylesheet ever referenced `.data-table`; `themeCoverage.test.ts` reads `.clock-date`
+       by name, never `.data-table`, so removing this rule cannot throw the way `.gauge-ring-inner`
+       once did). */
+    .cell .stream-row { padding: 4px 0; border-bottom: 1px solid var(--hairline); overflow: hidden; }
+    .cell .stream-title { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
+    .cell .stream-body { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;
+                          color: var(--muted); margin-top: 2px; }
+    /* `.age-chip` lived here until `image` — its last DOM emitter — became a canvas design
+       (widgets/image/frame.mjs). Every age caption on a board is painted onto a canvas now, at the
+       same fixed 10px this rule specified; the designs' own comments cite it as the source of that
+       number. No current static/, admin/ or test/ code emits or reads the class. */
+    /* `.stale { opacity: .5; }` went the same way: its two
+       DOM emitters were `charts.mjs`'s `canvas.classList.toggle('stale', …)` and device.js's
+       `<img class="feed-image stale">`, both deleted with the branches that drew them (`chart` ->
+       widgets/chart/plot.mjs, `image` -> widgets/image/frame.mjs — each design's own
+       docstring covers how `ctx.stale`/`globalAlpha` replaced the class). Nothing in static/,
+       admin/src or apps/ still emits or reads the class; `ctx.stale`, the data channel every
+       design's `draw` reads instead, is a different thing with the same name. */
+    /* `.cell .feed-missing` and `.cell .chart` are unused because the chart canvas renderer in
+       widgets/chart/plot.mjs emits no matching DOM elements. Every "Feed missing" notice on a board
+       is painted onto a canvas now, by the designs' shared `centredNotice`; no code in static/,
+       admin/ or test/ emits or reads either class. `.placeholder` stays —
+       `.too-small` (a cell below its widget's minimum) and the unsupported-widget notice are still
+       real DOM, and are what `board-overflow.test.ts` now measures. */
+    /* `.cell .feed-image` went with the `<img>` device.js no longer emits. Its one substantive
+       rule — `background: transparent`, i.e. letterbox bars show the cell's normal background
+       rather than any image-specific fill — is carried into the design as a rule about what it must
+       NOT paint (widgets/image/frame.mjs's docstring). */
+  </style>
+</head>
+<body>
+  <div id="offline">OFFLINE — reconnecting…</div>
+  <!-- The no-JavaScript default. device.js swaps it for the pair form only when the page is
+       genuinely unpaired; if the module never loads (bad network mid-reload), a paired board
+       shows a logo instead of a pair form inviting an accidental re-pair. -->
+  <div id="splash">
+    <div style="display: grid; place-items: center; gap: 14px">
+      <svg xmlns="http://www.w3.org/2000/svg" width="96" height="92" fill="none" viewBox="0 0 48 46"><path fill="#00ff88" d="M25.946 44.938c-.664.845-2.021.375-2.021-.698V33.937a2.26 2.26 0 0 0-2.262-2.262H10.287c-.92 0-1.456-1.04-.92-1.788l7.48-10.471c1.07-1.497 0-3.578-1.842-3.578H1.237c-.92 0-1.456-1.04-.92-1.788L10.013.474c.214-.297.556-.474.92-.474h28.894c.92 0 1.456 1.04.92 1.788l-7.48 10.471c-1.07 1.498 0 3.579 1.842 3.579h11.377c.943 0 1.473 1.088.89 1.83L25.947 44.94z"/></svg>
+      <div style="color: var(--dim); font-size: 15px; letter-spacing: .12em">DASHBOARDZ</div>
+    </div>
+  </div>
+  <div id="pairing" style="display: none">
+    <form id="pair-form">
+      <h2>Pair this device</h2>
+      <input id="pair-code" placeholder="Pairing code" autocomplete="off" required
+             maxlength="6" style="text-transform: uppercase">
+      <button type="submit">Pair</button>
+      <p id="pair-error" role="alert" style="color: var(--critical)"></p>
+    </form>
+  </div>
+  <div id="idle">
+    <div id="clockpane"><div id="clock"></div><div id="date"></div><div id="status"></div></div>
+    <div id="alerts"><div id="cards"></div><div id="chips"></div></div>
+    <div id="grid" style="display:none"></div>
+    <div id="tabbar" style="display:none"></div>
+  </div>
+  <div id="takeover">
+    <div class="meta" id="takeover-meta"></div>
+    <div class="title" id="takeover-title"></div>
+    <div class="body" id="takeover-body"></div>
+    <div class="actions">
+      <div id="silence-hint">🔇 Tap anywhere to silence</div>
+      <button id="dismiss-btn">Hold to dismiss</button>
+    </div>
+  </div>
+  <script type="module" src="/device/device.js"></script>
+</body>
+</html>
