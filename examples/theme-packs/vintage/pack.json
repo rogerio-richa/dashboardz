@@ -1,0 +1,25 @@
+{
+  "id": "vintage",
+  "name": "Vintage",
+  "version": "1.0.0",
+  "description": "Warm paper and brass: an analog clock, a brass dial gauge, soft bells.",
+  "author": "Dashboardz example",
+  "theme": {
+    "board": {
+      "bg": "#f4ecd8",
+      "surface": "#fbf6ea",
+      "ink": "#2b2118",
+      "dim": "#5c4a38",
+      "accent": "#8a5a1f",
+      "info": "#2f5f8a",
+      "warn": "#8a5a06",
+      "critical": "#a32b25",
+      "scrim": 0.4,
+      "series": ["#8a5a1f", "#2f5f8a", "#5f7a2a", "#a32b25"]
+    },
+    "backdrop": "wash",
+    "widgets": { "clock": "analog", "gauge": "vintage-dial" },
+    "recommended": { "clock": ["flip"], "gauge": ["ring"] },
+    "sounds": { "critical": "bells", "warn": "bells", "info": "bells", "offline": "bells", "activity": "bells" }
+  }
+}

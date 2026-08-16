@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+      Dashboardz hubs are LAN-first and serve plain HTTP by design; TLS is added by putting a
+      reverse proxy in front (see the hub's deployment docs). Since targetSdk 28+ blocks
+      cleartext by default, permitting it here is what makes the product's documented
+      deployment work at all. HTTPS hub URLs continue to work unchanged.
+    -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

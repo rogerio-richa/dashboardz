@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>Dashboardz News</title>
+  <item>
+    <title><![CDATA[Newest & brightest]]></title>
+    <link>https://news.example.test/three</link>
+    <guid isPermaLink="false">story-three</guid>
+    <pubDate>Wed, 05 Aug 2026 10:00:00 GMT</pubDate>
+    <description><![CDATA[<p>The third story.</p>]]></description>
+  </item>
+  <item>
+    <title>Guid only</title>
+    <guid isPermaLink="false">story-two</guid>
+    <pubDate>Tue, 04 Aug 2026 10:00:00 GMT</pubDate>
+    <description>The second story.</description>
+  </item>
+</channel></rss>

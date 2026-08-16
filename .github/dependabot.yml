@@ -1,0 +1,43 @@
+# One grouped PR per ecosystem per month instead of one PR per dependency.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      github-actions:
+        patterns: ["*"]
+  - package-ecosystem: gradle
+    directory: /apps/android
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      gradle:
+        patterns: ["*"]
+  - package-ecosystem: pip
+    directories:
+      - /docs
+      - /integrations/meshtastic
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      pip:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directories:
+      - /hub
+      - /hub/admin
+      - /relay
+      - /clients/sender
+      - /clients/mcp
+      - /integrations/claude/assistant
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    groups:
+      npm:
+        patterns: ["*"]

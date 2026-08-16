@@ -1,0 +1,84 @@
+site_name: Dashboardz
+site_url: https://www.scztech.com.br/dashboardz/docs/
+site_description: >-
+  Turn old phones, tablets, and spare screens into notification displays
+  for AI agents and systems.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.footer
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - toc:
+      permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Getting data onto screens: data-in.md
+  - Android app: android.md
+  - Development: development.md
+  - Reading the code:
+      - Overview: code/index.md
+      - Hub core and boot: code/hub-core.md
+      - Database and migrations: code/hub-db.md
+      - HTTP routes: code/hub-routes.md
+      - Device socket: code/hub-ws.md
+      - Alerts and pairing: code/hub-alerts-pairing.md
+      - Screens and widget contracts: code/hub-screens.md
+      - Data sources: code/hub-sources.md
+      - Relay client: code/hub-relay-client.md
+      - Admin UI: code/hub-admin.md
+      - Board runtime: code/device-runtime.md
+      - Widget designs: code/widgets.md
+      - Theme packs: code/packs.md
+      - Hub tests: code/hub-tests.md
+      - Android app: code/android.md
+      - Relay server: code/relay.md
+      - MCP server: code/mcp.md
+      - Sender client: code/sender.md
+      - Claude integration: code/integration-claude.md
+      - Netdata integration: code/integration-netdata.md
+      - Meshtastic integration: code/integration-meshtastic.md
+      - Scripts and CI: code/scripts.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Hub: architecture/hub.md
+      - Devices: architecture/devices.md
+      - Widgets: architecture/widgets.md
+      - Screens: architecture/screens.md
+      - Senders: architecture/senders.md
+      - Data sources: architecture/data.md
+      - Relay: architecture/relay.md
+      - Security model: architecture/security.md
+  - Theming: theming.md
+  - Make a theme pack: theme-packs.md
+  - Remote access: remote-access.md
+  - Deployment: deployment.md
+  - Building an integration: integrations.md
+  - Integration gallery:
+      - Overview: gallery/index.md
+      - Meshtastic radios: gallery/meshtastic.md
+      - Claude and AI agents: gallery/claude.md
+      - Netdata fleet health: gallery/netdata.md
+  - Comparison: comparison.md
