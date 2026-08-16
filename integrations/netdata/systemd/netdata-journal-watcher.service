@@ -1,0 +1,17 @@
+[Unit]
+Description=Netdata journal error watcher (journalctl -p err -> dispatch)
+After=netdata.service systemd-journald.service
+Wants=netdata.service
+
+[Service]
+Type=simple
+ExecStart=/opt/netdata-dashboardz/bin/journal-watcher.sh
+Restart=always
+RestartSec=5s
+# Redirect stderr to a file rather than the journal to avoid feedback loops:
+# a stderr line at PRIORITY=3 in the journal would re-trigger the watcher.
+StandardError=append:/opt/netdata-dashboardz/var/log/netdata-journal-watcher.err
+StandardOutput=null
+
+[Install]
+WantedBy=multi-user.target

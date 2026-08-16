@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.dashboardz.assistant</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/PATH/TO/node</string>
+    <string>/PATH/TO/dashboardz/integrations/claude/assistant/dist/cli.js</string>
+    <string>daemon</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>DASHBOARDZ_HUB_URL</key><string>http://hub.example.lan:8484</string>
+    <key>DASHBOARDZ_SENDER_TOKEN</key><string>dbz_s_...</string>
+    <key>DASHBOARDZ_AGENT_TOKEN</key><string>dbz_a_...</string>
+    <key>ANTHROPIC_API_KEY</key><string>sk-ant-...</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardErrorPath</key><string>/tmp/dashboardz-assistant.err</string>
+</dict>
+</plist>

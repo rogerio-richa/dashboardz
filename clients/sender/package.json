@@ -1,0 +1,29 @@
+{
+  "name": "dashboardz-sender",
+  "version": "0.1.0",
+  "description": "Reference sender client for the dashboardz relay: seals notifies end-to-end to a hub, resolves acks, and receives answers. The relay only ever sees ciphertext.",
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/client.js",
+  "bin": {
+    "dbz-send": "dist/cli.js"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "node ../../scripts/check-typecheck-scope.mjs && tsc -p tsconfig.check.json"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^3.2.7"
+  }
+}

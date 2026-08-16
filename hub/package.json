@@ -1,0 +1,35 @@
+{
+  "name": "dashboardz-hub",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "vitest run",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json && npm --prefix admin run build",
+    "typecheck": "node ../scripts/check-typecheck-scope.mjs && tsc -p tsconfig.check.json"
+  },
+  "keywords": ["dashboardz", "self-hosted", "notifications", "dashboard", "websocket"],
+  "license": "AGPL-3.0-only",
+  "description": "Self-hosted Dashboardz hub for alerts, screens, and widgets",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/static": "^10.1.2",
+    "@fastify/websocket": "^11.3.0",
+    "better-sqlite3": "^11.10.0",
+    "fastify": "^5.10.0",
+    "node-ical": "0.27.1",
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^26.1.2",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^3.2.7"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

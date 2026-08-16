@@ -1,0 +1,58 @@
+site_name: Dashboardz
+site_url: https://www.scztech.com.br/dashboardz/docs/
+site_description: >-
+  Turn old phones, tablets, and spare screens into notification displays
+  for AI agents and systems.
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.footer
+    - content.code.copy
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.details
+  - toc:
+      permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Development: development.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Hub: architecture/hub.md
+      - Devices: architecture/devices.md
+      - Widgets: architecture/widgets.md
+      - Screens: architecture/screens.md
+      - Senders: architecture/senders.md
+      - Data sources: architecture/data.md
+      - Relay: architecture/relay.md
+      - Security model: architecture/security.md
+  - Theming: theming.md
+  - Remote access: remote-access.md
+  - Deployment: deployment.md
+  - Building an integration: integrations.md
+  - Integration gallery:
+      - Overview: gallery/index.md
+      - Meshtastic radios: gallery/meshtastic.md
+      - Claude and AI agents: gallery/claude.md
+      - Netdata fleet health: gallery/netdata.md
+  - Comparison: comparison.md

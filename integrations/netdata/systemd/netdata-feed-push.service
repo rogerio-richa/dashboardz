@@ -1,0 +1,7 @@
+[Unit]
+Description=Host cpu/ram (/proc, not netdata's API) -> dashboardz feed push (one-shot; invoked by .timer)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/netdata-dashboardz/bin/netdata-feed-push.sh

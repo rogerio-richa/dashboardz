@@ -1,0 +1,2432 @@
+{
+  "_readme": [
+    "Browser test vectors for the shared data-widget core.",
+    "hub/test/layout-core.test.ts runs this exact file as the browser vector contract.",
+    "The former Android/Compose twin was retired; change a rule -> change this implementation and",
+    "the vectors together, never a vector alone to match a convenient result.",
+    "Conventions: JSON cannot hold `undefined`. A vector whose expected result is `undefined`",
+    "carries \"expect\": null PLUS \"expectMissing\": true; a vector expecting a real JSON null",
+    "carries \"expect\": null with NO expectMissing flag. Every number here was derived by hand",
+    "from the contract arithmetic - never from a program's output."
+  ],
+  "resolvePath": [
+    {
+      "name": "empty path resolves to the whole payload",
+      "payload": {
+        "a": 1,
+        "b": {
+          "c": 2
+        }
+      },
+      "path": "",
+      "expect": {
+        "a": 1,
+        "b": {
+          "c": 2
+        }
+      }
+    },
+    {
+      "name": "empty path on an array payload",
+      "payload": [
+        1,
+        2
+      ],
+      "path": "",
+      "expect": [
+        1,
+        2
+      ]
+    },
+    {
+      "name": "single object key",
+      "payload": {
+        "cpu": 37.2
+      },
+      "path": "cpu",
+      "expect": 37.2
+    },
+    {
+      "name": "nested object",
+      "payload": {
+        "a": {
+          "b": {
+            "c": 42
+          }
+        }
+      },
+      "path": "a.b.c",
+      "expect": 42
+    },
+    {
+      "name": "object leaf is returned whole",
+      "payload": {
+        "a": {
+          "b": {
+            "c": 1
+          }
+        }
+      },
+      "path": "a.b",
+      "expect": {
+        "c": 1
+      }
+    },
+    {
+      "name": "array index",
+      "payload": {
+        "a": {
+          "b": [
+            10,
+            20
+          ]
+        }
+      },
+      "path": "a.b.1",
+      "expect": 20
+    },
+    {
+      "name": "array index at the root",
+      "payload": [
+        10,
+        20,
+        30
+      ],
+      "path": "2",
+      "expect": 30
+    },
+    {
+      "name": "index 0 then key",
+      "payload": {
+        "rows": [
+          {
+            "v": 1
+          },
+          {
+            "v": 2
+          }
+        ]
+      },
+      "path": "rows.0.v",
+      "expect": 1
+    },
+    {
+      "name": "nested arrays",
+      "payload": {
+        "a": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            4
+          ]
+        ]
+      },
+      "path": "a.1.0",
+      "expect": 3
+    },
+    {
+      "name": "digits as an OBJECT key (not an index)",
+      "payload": {
+        "0": "x"
+      },
+      "path": "0",
+      "expect": "x"
+    },
+    {
+      "name": "falsy leaf 0 is a hit, not a miss",
+      "payload": {
+        "a": {
+          "b": 0
+        }
+      },
+      "path": "a.b",
+      "expect": 0
+    },
+    {
+      "name": "boolean leaf",
+      "payload": {
+        "ok": true
+      },
+      "path": "ok",
+      "expect": true
+    },
+    {
+      "name": "leaf holding JSON null resolves TO null (not missing)",
+      "payload": {
+        "a": null
+      },
+      "path": "a",
+      "expect": null
+    },
+    {
+      "name": "array index out of range -> missing",
+      "payload": {
+        "a": [
+          10,
+          20
+        ]
+      },
+      "path": "a.5",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "non-digit segment on an array -> missing (arrays accept numeric indexes only)",
+      "payload": [
+        10,
+        20
+      ],
+      "path": "length",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "negative index is not all-digits -> missing",
+      "payload": [
+        10,
+        20
+      ],
+      "path": "-1",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "miss mid-path -> missing",
+      "payload": {
+        "a": {
+          "b": 1
+        }
+      },
+      "path": "a.z.c",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "traversing INTO a non-object leaf -> missing",
+      "payload": {
+        "a": 5
+      },
+      "path": "a.b",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "scalar payload with a non-empty path -> missing",
+      "payload": 5,
+      "path": "a",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "null payload with a non-empty path -> missing",
+      "payload": null,
+      "path": "a",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "inherited keys are not own keys -> missing",
+      "payload": {},
+      "path": "toString",
+      "expect": null,
+      "expectMissing": true
+    },
+    {
+      "name": "malformed leading-dot path never throws -> missing",
+      "payload": {
+        "a": 1
+      },
+      "path": ".a",
+      "expect": null,
+      "expectMissing": true
+    }
+  ],
+  "displayValue": [
+    {
+      "name": "integral number renders with no decimal point",
+      "value": 5,
+      "format": "raw",
+      "decimals": null,
+      "expect": "5"
+    },
+    {
+      "name": "5.0 in the payload is still integral",
+      "value": 5.0,
+      "format": "raw",
+      "decimals": null,
+      "expect": "5"
+    },
+    {
+      "name": "integral beats an explicit decimals (5 never 5.0)",
+      "value": 5,
+      "format": "raw",
+      "decimals": 2,
+      "expect": "5"
+    },
+    {
+      "name": "zero",
+      "value": 0,
+      "format": "raw",
+      "decimals": null,
+      "expect": "0"
+    },
+    {
+      "name": "negative integral",
+      "value": -12,
+      "format": "raw",
+      "decimals": null,
+      "expect": "-12"
+    },
+    {
+      "name": "float, no decimals set -> String(v)",
+      "value": 37.2,
+      "format": "raw",
+      "decimals": null,
+      "expect": "37.2"
+    },
+    {
+      "name": "float with decimals 1 -> fixed",
+      "value": 37.246,
+      "format": "raw",
+      "decimals": 1,
+      "expect": "37.2"
+    },
+    {
+      "name": "float with decimals 2 -> fixed, rounds up",
+      "value": 37.246,
+      "format": "raw",
+      "decimals": 2,
+      "expect": "37.25"
+    },
+    {
+      "name": "decimals 0 rounds half AWAY from zero",
+      "value": 2.5,
+      "format": "raw",
+      "decimals": 0,
+      "expect": "3"
+    },
+    {
+      "name": "decimals 0 rounds half away from zero (negative)",
+      "value": -2.5,
+      "format": "raw",
+      "decimals": 0,
+      "expect": "-3"
+    },
+    {
+      "name": "a negative that rounds to zero KEEPS its sign (toFixed splits the sign off first)",
+      "value": -0.04,
+      "format": "raw",
+      "decimals": 1,
+      "expect": "-0.0"
+    },
+    {
+      "name": "negative rounding to zero at decimals 0 -> '-0', not '0'",
+      "value": -0.4,
+      "format": "raw",
+      "decimals": 0,
+      "expect": "-0"
+    },
+    {
+      "name": "negative rounding to zero at decimals 2 -> '-0.00'",
+      "value": -0.004,
+      "format": "raw",
+      "decimals": 2,
+      "expect": "-0.00"
+    },
+    {
+      "name": "format null means raw",
+      "value": 42,
+      "format": null,
+      "decimals": null,
+      "expect": "42"
+    },
+    {
+      "name": "string passes through untouched",
+      "value": "hello",
+      "format": "raw",
+      "decimals": null,
+      "expect": "hello"
+    },
+    {
+      "name": "empty string passes through",
+      "value": "",
+      "format": "raw",
+      "decimals": null,
+      "expect": ""
+    },
+    {
+      "name": "type dispatch beats format: a numeric STRING is not abbreviated",
+      "value": "1500",
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1500"
+    },
+    {
+      "name": "boolean true",
+      "value": true,
+      "format": "raw",
+      "decimals": null,
+      "expect": "true"
+    },
+    {
+      "name": "boolean false",
+      "value": false,
+      "format": "raw",
+      "decimals": null,
+      "expect": "false"
+    },
+    {
+      "name": "null -> em dash placeholder",
+      "value": null,
+      "format": "raw",
+      "decimals": null,
+      "expect": "—"
+    },
+    {
+      "name": "null -> em dash placeholder under abbrev too",
+      "value": null,
+      "format": "abbrev",
+      "decimals": 2,
+      "expect": "—"
+    },
+    {
+      "name": "object -> compact single-line JSON, no spaces",
+      "value": {
+        "a": 1,
+        "b": [
+          2,
+          3
+        ]
+      },
+      "format": "raw",
+      "decimals": null,
+      "expect": "{\"a\":1,\"b\":[2,3]}"
+    },
+    {
+      "name": "array -> compact single-line JSON",
+      "value": [
+        1,
+        "x",
+        null
+      ],
+      "format": "raw",
+      "decimals": null,
+      "expect": "[1,\"x\",null]"
+    },
+    {
+      "name": "empty object",
+      "value": {},
+      "format": "raw",
+      "decimals": null,
+      "expect": "{}"
+    },
+    {
+      "name": "abbrev K",
+      "value": 1500,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1.5K"
+    },
+    {
+      "name": "abbrev at the exact K boundary - NO zero stripping",
+      "value": 1000,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1.0K"
+    },
+    {
+      "name": "abbrev just below the K boundary falls back to the raw rule",
+      "value": 999,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "999"
+    },
+    {
+      "name": "abbrev below the boundary, non-integral, no decimals",
+      "value": 999.5,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "999.5"
+    },
+    {
+      "name": "abbrev negative below the boundary uses |v| for the tier test",
+      "value": -999,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "-999"
+    },
+    {
+      "name": "abbrev zero",
+      "value": 0,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "0"
+    },
+    {
+      "name": "abbrev M at the exact boundary",
+      "value": 1000000,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1.0M"
+    },
+    {
+      "name": "abbrev negative M (tier from |v|, sign kept)",
+      "value": -2500000,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "-2.5M"
+    },
+    {
+      "name": "abbrev B at the exact boundary",
+      "value": 1000000000,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1.0B"
+    },
+    {
+      "name": "abbrev B with default 1 decimal",
+      "value": 1234567890,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1.2B"
+    },
+    {
+      "name": "abbrev B honours decimals",
+      "value": 1234567890,
+      "format": "abbrev",
+      "decimals": 2,
+      "expect": "1.23B"
+    },
+    {
+      "name": "abbrev K honours decimals 2",
+      "value": 1536,
+      "format": "abbrev",
+      "decimals": 2,
+      "expect": "1.54K"
+    },
+    {
+      "name": "abbrev K with decimals 0 rounds",
+      "value": 1500,
+      "format": "abbrev",
+      "decimals": 0,
+      "expect": "2K"
+    },
+    {
+      "name": "no tier above B - trillions stay in B",
+      "value": 1500000000000,
+      "format": "abbrev",
+      "decimals": null,
+      "expect": "1500.0B"
+    }
+  ],
+  "applyScale": [
+    {
+      "name": "identity",
+      "px": 96,
+      "scale": 1,
+      "floor": 16,
+      "expect": 96
+    },
+    {
+      "name": "null scale means 1",
+      "px": 24,
+      "scale": null,
+      "floor": 10,
+      "expect": 24
+    },
+    {
+      "name": "clamped high: 3 is treated as SCALE_MAX 2",
+      "px": 96,
+      "scale": 3,
+      "floor": 16,
+      "expect": 192
+    },
+    {
+      "name": "SCALE_MAX exactly",
+      "px": 96,
+      "scale": 2,
+      "floor": 16,
+      "expect": 192
+    },
+    {
+      "name": "clamped low: 0.1 is treated as SCALE_MIN 0.5",
+      "px": 96,
+      "scale": 0.1,
+      "floor": 16,
+      "expect": 48
+    },
+    {
+      "name": "SCALE_MIN exactly",
+      "px": 96,
+      "scale": 0.5,
+      "floor": 16,
+      "expect": 48
+    },
+    {
+      "name": "negative scale clamps to SCALE_MIN",
+      "px": 120,
+      "scale": -4,
+      "floor": 16,
+      "expect": 60
+    },
+    {
+      "name": "floor wins: FLOOR_VALUE holds the primary value size",
+      "px": 16,
+      "scale": 0.5,
+      "floor": 16,
+      "expect": 16
+    },
+    {
+      "name": "floor wins for labels",
+      "px": 12,
+      "scale": 0.5,
+      "floor": 10,
+      "expect": 10
+    },
+    {
+      "name": "rounds half up (10.5 -> 11, so NOT half-even; 10 would mean floor/trunc)",
+      "px": 14,
+      "scale": 0.75,
+      "floor": 10,
+      "expect": 11
+    },
+    {
+      "name": "rounds .5 up again (55.5 -> 56)",
+      "px": 37,
+      "scale": 1.5,
+      "floor": 16,
+      "expect": 56
+    },
+    {
+      "name": "rounds DOWN below .5 with no floor masking it: 15*0.75 = 11.25 exactly -> 11 (ceil would give 12)",
+      "px": 15,
+      "scale": 0.75,
+      "floor": 10,
+      "expect": 11
+    },
+    {
+      "name": "rounds DOWN against the FLOOR_VALUE floor too: 15*1.75 = 26.25 exactly -> 26 (ceil would give 27)",
+      "px": 15,
+      "scale": 1.75,
+      "floor": 16,
+      "expect": 26
+    },
+    {
+      "name": "rounds DOWN on a non-exact product far from any tie: 24*0.55 = 13.200000000000001 -> 13 (ceil would give 14)",
+      "px": 24,
+      "scale": 0.55,
+      "floor": 10,
+      "expect": 13
+    },
+    {
+      "name": "the floor wins over the rounded product: 12*0.6 = 7.199... -> 7, lifted to the floor 10",
+      "px": 12,
+      "scale": 0.6,
+      "floor": 10,
+      "expect": 10
+    },
+    {
+      "name": "quadrant label at 1.25",
+      "px": 48,
+      "scale": 1.25,
+      "floor": 16,
+      "expect": 60
+    },
+    {
+      "name": "at the floor with scale 2",
+      "px": 10,
+      "scale": 2,
+      "floor": 10,
+      "expect": 20
+    }
+  ],
+  "cardPlan": [
+    {
+      "name": "alert_feed spec example re-expressed: counter space is reserved BEFORE the fit decision",
+      "cellHeight": 396,
+      "count": 7,
+      "counterEnabled": true,
+      "cardHeight": 132,
+      "visible": 2,
+      "hidden": 5
+    },
+    {
+      "name": "everything fits: no counter row is reserved",
+      "cellHeight": 396,
+      "count": 3,
+      "counterEnabled": true,
+      "cardHeight": 132,
+      "visible": 3,
+      "hidden": 0
+    },
+    {
+      "name": "a cell one counter taller shows 3 of 7 (mirrors the alert_feed test)",
+      "cellHeight": 424,
+      "count": 7,
+      "counterEnabled": true,
+      "cardHeight": 132,
+      "visible": 3,
+      "hidden": 4
+    },
+    {
+      "name": "exact fit with the counter disabled",
+      "cellHeight": 480,
+      "count": 5,
+      "counterEnabled": false,
+      "cardHeight": 96,
+      "visible": 5,
+      "hidden": 0
+    },
+    {
+      "name": "overflow with the counter disabled: silent clip at fit",
+      "cellHeight": 300,
+      "count": 10,
+      "counterEnabled": false,
+      "cardHeight": 48,
+      "visible": 6,
+      "hidden": 4
+    },
+    {
+      "name": "overflow with the counter enabled",
+      "cellHeight": 300,
+      "count": 7,
+      "counterEnabled": true,
+      "cardHeight": 48,
+      "visible": 5,
+      "hidden": 2
+    },
+    {
+      "name": "stream_list title-only cards (STREAM_CARD_TITLE 48)",
+      "cellHeight": 200,
+      "count": 5,
+      "counterEnabled": true,
+      "cardHeight": 48,
+      "visible": 3,
+      "hidden": 2
+    },
+    {
+      "name": "stream_list cards with a body (STREAM_CARD_BODY 96)",
+      "cellHeight": 300,
+      "count": 6,
+      "counterEnabled": true,
+      "cardHeight": 96,
+      "visible": 2,
+      "hidden": 4
+    },
+    {
+      "name": "table: caller subtracts TABLE_HEADER first (400-36), rows are TABLE_ROW 44",
+      "cellHeight": 364,
+      "count": 12,
+      "counterEnabled": true,
+      "cardHeight": 44,
+      "visible": 7,
+      "hidden": 5
+    },
+    {
+      "name": "zero-height cell never goes negative",
+      "cellHeight": 0,
+      "count": 3,
+      "counterEnabled": true,
+      "cardHeight": 48,
+      "visible": 0,
+      "hidden": 3
+    },
+    {
+      "name": "tiny cell with the counter disabled",
+      "cellHeight": 10,
+      "count": 5,
+      "counterEnabled": false,
+      "cardHeight": 48,
+      "visible": 0,
+      "hidden": 5
+    },
+    {
+      "name": "empty feed: nothing visible, nothing hidden",
+      "cellHeight": 300,
+      "count": 0,
+      "counterEnabled": true,
+      "cardHeight": 48,
+      "visible": 0,
+      "hidden": 0
+    },
+    {
+      "name": "negative cellHeight cannot produce negative visible (pins coerceAtLeast(0))",
+      "cellHeight": -50,
+      "count": 3,
+      "counterEnabled": true,
+      "cardHeight": 44,
+      "visible": 0,
+      "hidden": 3
+    },
+    {
+      "name": "cellHeight smaller than the counter alone",
+      "cellHeight": 10,
+      "count": 2,
+      "counterEnabled": true,
+      "cardHeight": 44,
+      "visible": 0,
+      "hidden": 2
+    }
+  ],
+  "ageChip": [
+    {
+      "name": "fresh",
+      "ageMs": 0,
+      "expect": "now"
+    },
+    {
+      "name": "clock skew (negative age) still reads fresh",
+      "ageMs": -5000,
+      "expect": "now"
+    },
+    {
+      "name": "one ms under a minute",
+      "ageMs": 59999,
+      "expect": "now"
+    },
+    {
+      "name": "exactly one minute",
+      "ageMs": 60000,
+      "expect": "1m ago"
+    },
+    {
+      "name": "minutes floor, not round",
+      "ageMs": 119999,
+      "expect": "1m ago"
+    },
+    {
+      "name": "two minutes",
+      "ageMs": 120000,
+      "expect": "2m ago"
+    },
+    {
+      "name": "one ms under an hour",
+      "ageMs": 3599999,
+      "expect": "59m ago"
+    },
+    {
+      "name": "exactly one hour",
+      "ageMs": 3600000,
+      "expect": "1h ago"
+    },
+    {
+      "name": "hours floor, not round",
+      "ageMs": 7199999,
+      "expect": "1h ago"
+    },
+    {
+      "name": "one ms under a day",
+      "ageMs": 86399999,
+      "expect": "23h ago"
+    },
+    {
+      "name": "exactly one day",
+      "ageMs": 86400000,
+      "expect": "1d ago"
+    },
+    {
+      "name": "three days",
+      "ageMs": 259200000,
+      "expect": "3d ago"
+    },
+    {
+      "name": "no upper tier: days keep counting",
+      "ageMs": 8640000000,
+      "expect": "100d ago"
+    }
+  ],
+  "gaugeFraction": [
+    {
+      "name": "mid range",
+      "v": 50,
+      "min": 0,
+      "max": 100,
+      "expect": 0.5
+    },
+    {
+      "name": "at min",
+      "v": 0,
+      "min": 0,
+      "max": 100,
+      "expect": 0
+    },
+    {
+      "name": "at max",
+      "v": 100,
+      "min": 0,
+      "max": 100,
+      "expect": 1
+    },
+    {
+      "name": "below min clamps to 0",
+      "v": -10,
+      "min": 0,
+      "max": 100,
+      "expect": 0
+    },
+    {
+      "name": "above max clamps to 1",
+      "v": 150,
+      "min": 0,
+      "max": 100,
+      "expect": 1
+    },
+    {
+      "name": "offset range",
+      "v": 45,
+      "min": 20,
+      "max": 70,
+      "expect": 0.5
+    },
+    {
+      "name": "negative min",
+      "v": 0,
+      "min": -50,
+      "max": 50,
+      "expect": 0.5
+    },
+    {
+      "name": "quarter of a wide range",
+      "v": 25,
+      "min": 0,
+      "max": 200,
+      "expect": 0.125
+    },
+    {
+      "name": "fractional value",
+      "v": 37.5,
+      "min": 0,
+      "max": 100,
+      "expect": 0.375
+    },
+    {
+      "name": "below an offset min clamps to 0",
+      "v": 5,
+      "min": 20,
+      "max": 70,
+      "expect": 0
+    }
+  ],
+  "gaugeSeverity": [
+    {
+      "name": "no thresholds configured",
+      "v": 50,
+      "warn": null,
+      "crit": null,
+      "expect": "info"
+    },
+    {
+      "name": "warn configured, not crossed",
+      "v": 50,
+      "warn": 80,
+      "crit": null,
+      "expect": "info"
+    },
+    {
+      "name": "warn crossed exactly at the threshold",
+      "v": 80,
+      "warn": 80,
+      "crit": null,
+      "expect": "warn"
+    },
+    {
+      "name": "warn crossed above",
+      "v": 85,
+      "warn": 80,
+      "crit": 90,
+      "expect": "warn"
+    },
+    {
+      "name": "crit crossed exactly at the threshold wins",
+      "v": 90,
+      "warn": 80,
+      "crit": 90,
+      "expect": "critical"
+    },
+    {
+      "name": "crit crossed above wins",
+      "v": 95,
+      "warn": 80,
+      "crit": 90,
+      "expect": "critical"
+    },
+    {
+      "name": "crit only, crossed",
+      "v": 60,
+      "warn": null,
+      "crit": 50,
+      "expect": "critical"
+    },
+    {
+      "name": "crit only, not crossed",
+      "v": 40,
+      "warn": null,
+      "crit": 50,
+      "expect": "info"
+    },
+    {
+      "name": "thresholds are checked independently: crit below warn still wins",
+      "v": 60,
+      "warn": 90,
+      "crit": 50,
+      "expect": "critical"
+    },
+    {
+      "name": "zero threshold is a real threshold, not 'unset'",
+      "v": 0,
+      "warn": 0,
+      "crit": null,
+      "expect": "warn"
+    },
+    {
+      "name": "negative values below a negative warn",
+      "v": -10,
+      "warn": -5,
+      "crit": null,
+      "expect": "info"
+    }
+  ],
+  "seriesPoints": [
+    {
+      "name": "rows arrive newest-first; points come back oldest-first",
+      "rows": [
+        {
+          "payload": {
+            "v": 30
+          },
+          "pushed_at": 300
+        },
+        {
+          "payload": {
+            "v": 20
+          },
+          "pushed_at": 200
+        },
+        {
+          "payload": {
+            "v": 10
+          },
+          "pushed_at": 100
+        }
+      ],
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 1000,
+      "expect": [
+        {
+          "t": 100,
+          "y": 10
+        },
+        {
+          "t": 200,
+          "y": 20
+        },
+        {
+          "t": 300,
+          "y": 30
+        }
+      ]
+    },
+    {
+      "name": "non-numeric and missing y are SKIPPED, never zeroed (a zeroed gap would be a lie on a metrics chart)",
+      "rows": [
+        {
+          "payload": {
+            "v": "oops"
+          },
+          "pushed_at": 300
+        },
+        {
+          "payload": {
+            "v": 20
+          },
+          "pushed_at": 200
+        },
+        {
+          "payload": {},
+          "pushed_at": 100
+        }
+      ],
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 1000,
+      "expect": [
+        {
+          "t": 200,
+          "y": 20
+        }
+      ]
+    },
+    {
+      "name": "null y and boolean y are skipped too (only real finite numbers plot)",
+      "rows": [
+        {
+          "payload": {
+            "v": null
+          },
+          "pushed_at": 100
+        },
+        {
+          "payload": {
+            "v": true
+          },
+          "pushed_at": 150
+        },
+        {
+          "payload": {
+            "v": 5
+          },
+          "pushed_at": 200
+        }
+      ],
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 1000,
+      "expect": [
+        {
+          "t": 200,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "name": "y_path resolves through resolvePath (nested + array segments both work)",
+      "rows": [
+        {
+          "payload": {
+            "stats": {
+              "cpu": 42
+            }
+          },
+          "pushed_at": 50
+        }
+      ],
+      "yPath": "stats.cpu",
+      "windowS": null,
+      "hubNow": 1000,
+      "expect": [
+        {
+          "t": 50,
+          "y": 42
+        }
+      ]
+    },
+    {
+      "name": "window_s null keeps every row regardless of age",
+      "rows": [
+        {
+          "payload": {
+            "v": 1
+          },
+          "pushed_at": 0
+        }
+      ],
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 999999999,
+      "expect": [
+        {
+          "t": 0,
+          "y": 1
+        }
+      ]
+    },
+    {
+      "name": "window boundary: a row exactly AT the cutoff (hubNow - windowS*1000) is KEPT, not 'older than'",
+      "rows": [
+        {
+          "payload": {
+            "v": 3
+          },
+          "pushed_at": 9000
+        },
+        {
+          "payload": {
+            "v": 2
+          },
+          "pushed_at": 5000
+        },
+        {
+          "payload": {
+            "v": 1
+          },
+          "pushed_at": 1000
+        }
+      ],
+      "yPath": "v",
+      "windowS": 5,
+      "hubNow": 10000,
+      "expect": [
+        {
+          "t": 5000,
+          "y": 2
+        },
+        {
+          "t": 9000,
+          "y": 3
+        }
+      ]
+    },
+    {
+      "name": "one ms before the cutoff is dropped (strictly older than the window)",
+      "rows": [
+        {
+          "payload": {
+            "v": 9
+          },
+          "pushed_at": 4999
+        }
+      ],
+      "yPath": "v",
+      "windowS": 5,
+      "hubNow": 10000,
+      "expect": []
+    },
+    {
+      "name": "a row missing pushed_at is skipped without throwing (bad data never crashes a read path)",
+      "rows": [
+        {
+          "payload": {
+            "v": 5
+          }
+        },
+        {
+          "payload": {
+            "v": 6
+          },
+          "pushed_at": 100
+        }
+      ],
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 0,
+      "expect": [
+        {
+          "t": 100,
+          "y": 6
+        }
+      ]
+    },
+    {
+      "name": "empty rows array",
+      "rows": [],
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 0,
+      "expect": []
+    },
+    {
+      "name": "rows that are not an array degrade to no points, never throw",
+      "rows": "garbage",
+      "yPath": "v",
+      "windowS": null,
+      "hubNow": 0,
+      "expect": []
+    }
+  ],
+  "chartBounds": [
+    {
+      "name": "explicit y bounds override the computed ones entirely",
+      "allPoints": [
+        {
+          "t": 0,
+          "y": 10
+        },
+        {
+          "t": 100,
+          "y": 20
+        }
+      ],
+      "yMin": 0,
+      "yMax": 100,
+      "expect": {
+        "tMin": 0,
+        "tMax": 100,
+        "yMin": 0,
+        "yMax": 100
+      }
+    },
+    {
+      "name": "no explicit bounds: y is computed from the points' own min/max",
+      "allPoints": [
+        {
+          "t": 0,
+          "y": 10
+        },
+        {
+          "t": 50,
+          "y": 30
+        },
+        {
+          "t": 100,
+          "y": 20
+        }
+      ],
+      "yMin": null,
+      "yMax": null,
+      "expect": {
+        "tMin": 0,
+        "tMax": 100,
+        "yMin": 10,
+        "yMax": 30
+      }
+    },
+    {
+      "name": "degenerate y span (every point shares one y) pads +-1",
+      "allPoints": [
+        {
+          "t": 0,
+          "y": 5
+        },
+        {
+          "t": 100,
+          "y": 5
+        }
+      ],
+      "yMin": null,
+      "yMax": null,
+      "expect": {
+        "tMin": 0,
+        "tMax": 100,
+        "yMin": 4,
+        "yMax": 6
+      }
+    },
+    {
+      "name": "degenerate t span (every point shares one timestamp) pads +-1 so x math never divides by zero",
+      "allPoints": [
+        {
+          "t": 50,
+          "y": 1
+        },
+        {
+          "t": 50,
+          "y": 9
+        }
+      ],
+      "yMin": null,
+      "yMax": null,
+      "expect": {
+        "tMin": 49,
+        "tMax": 51,
+        "yMin": 1,
+        "yMax": 9
+      }
+    },
+    {
+      "name": "a single point pads BOTH the t and y spans +-1",
+      "allPoints": [
+        {
+          "t": 100,
+          "y": 20
+        }
+      ],
+      "yMin": null,
+      "yMax": null,
+      "expect": {
+        "tMin": 99,
+        "tMax": 101,
+        "yMin": 19,
+        "yMax": 21
+      }
+    },
+    {
+      "name": "no points and no explicit bounds default to 0 before padding (chart frame still draws, never NaN)",
+      "allPoints": [],
+      "yMin": null,
+      "yMax": null,
+      "expect": {
+        "tMin": -1,
+        "tMax": 1,
+        "yMin": -1,
+        "yMax": 1
+      }
+    },
+    {
+      "name": "explicit yMin only: yMax is still computed from the points",
+      "allPoints": [
+        {
+          "t": 0,
+          "y": 10
+        },
+        {
+          "t": 100,
+          "y": 30
+        }
+      ],
+      "yMin": 0,
+      "yMax": null,
+      "expect": {
+        "tMin": 0,
+        "tMax": 100,
+        "yMin": 0,
+        "yMax": 30
+      }
+    },
+    {
+      "name": "explicit yMax only: yMin is still computed from the points",
+      "allPoints": [
+        {
+          "t": 0,
+          "y": 10
+        },
+        {
+          "t": 100,
+          "y": 30
+        }
+      ],
+      "yMin": null,
+      "yMax": 100,
+      "expect": {
+        "tMin": 0,
+        "tMax": 100,
+        "yMin": 10,
+        "yMax": 100
+      }
+    },
+    {
+      "name": "explicit y bounds that happen to be equal still get padded (degenerate check applies AFTER combining explicit+computed)",
+      "allPoints": [
+        {
+          "t": 0,
+          "y": 1
+        },
+        {
+          "t": 10,
+          "y": 2
+        }
+      ],
+      "yMin": 5,
+      "yMax": 5,
+      "expect": {
+        "tMin": 0,
+        "tMax": 10,
+        "yMin": 4,
+        "yMax": 6
+      }
+    }
+  ],
+  "axisLabel": [
+    {
+      "name": "THE BUG: an autoscaled bound printed its entire float, right-aligned into a 3.5em gutter, so the board showed the clipped TAIL of the number",
+      "value": 74.38263382999288,
+      "span": 50.47896787258227,
+      "expect": "74"
+    },
+    {
+      "name": "the matching lower bound",
+      "value": 23.903665957410954,
+      "span": 50.47896787258227,
+      "expect": "24"
+    },
+    {
+      "name": "a span of ten or more needs no decimals at all",
+      "value": 15.2,
+      "span": 12,
+      "expect": "15"
+    },
+    {
+      "name": "a single-digit span keeps one decimal",
+      "value": 24.44,
+      "span": 4,
+      "expect": "24.4"
+    },
+    {
+      "name": "a sub-unit span keeps two",
+      "value": 4.2,
+      "span": 0.5,
+      "expect": "4.2"
+    },
+    {
+      "name": "trailing zeros are stripped, so a battery axis reads 4.2 not 4.20",
+      "value": 4.0,
+      "span": 0.5,
+      "expect": "4"
+    },
+    {
+      "name": "a tiny span keeps three",
+      "value": 0.0042,
+      "span": 0.004,
+      "expect": "0.004"
+    },
+    {
+      "name": "a flat line has no span, so precision comes from the value itself",
+      "value": 250,
+      "span": 0,
+      "expect": "250"
+    },
+    {
+      "name": "a flat line below one still reads as a number, not as 0.500",
+      "value": 0.5,
+      "span": 0,
+      "expect": "0.5"
+    },
+    {
+      "name": "six figures abbreviate rather than overflow the gutter",
+      "value": 1234567,
+      "span": 900000,
+      "expect": "1.2M"
+    },
+    {
+      "name": "five figures still fit, so they stay exact",
+      "value": 99288,
+      "span": 88334,
+      "expect": "99288"
+    },
+    {
+      "name": "negatives keep their sign and their rounding",
+      "value": -12.7,
+      "span": 30,
+      "expect": "-13"
+    },
+    {
+      "name": "a non-finite bound degrades to the placeholder rather than printing NaN",
+      "value": null,
+      "span": 10,
+      "expect": "—"
+    }
+  ],
+  "markEvery": [
+    {
+      "name": "zero points still floors at 1 (never zero — that would divide by zero in a caller doing i % markEvery)",
+      "pointCount": 0,
+      "maxMarks": 24,
+      "expect": 1
+    },
+    {
+      "name": "a single point is always marked",
+      "pointCount": 1,
+      "maxMarks": 24,
+      "expect": 1
+    },
+    {
+      "name": "count exactly at the max: every point marked",
+      "pointCount": 24,
+      "maxMarks": 24,
+      "expect": 1
+    },
+    {
+      "name": "one point over the max: every 2nd point marked",
+      "pointCount": 25,
+      "maxMarks": 24,
+      "expect": 2
+    },
+    {
+      "name": "double the max, an exact multiple: every 2nd point",
+      "pointCount": 48,
+      "maxMarks": 24,
+      "expect": 2
+    },
+    {
+      "name": "just over double the max: rounds UP to every 3rd point (ceil, not round)",
+      "pointCount": 49,
+      "maxMarks": 24,
+      "expect": 3
+    },
+    {
+      "name": "quadrant ramp (CHART_MAX_MARKS.quadrant=8) thins a dense series aggressively",
+      "pointCount": 100,
+      "maxMarks": 8,
+      "expect": 13
+    },
+    {
+      "name": "half ramp (CHART_MAX_MARKS.half=12) at exactly the max",
+      "pointCount": 12,
+      "maxMarks": 12,
+      "expect": 1
+    }
+  ],
+  "chartAllSeriesMissing": [
+    {
+      "name": "no series missing: every feed is available",
+      "series": [
+        {
+          "feed": "a"
+        },
+        {
+          "feed": "b"
+        }
+      ],
+      "availableFeedIds": [
+        "a",
+        "b"
+      ],
+      "expect": false
+    },
+    {
+      "name": "some missing: at least one series still resolves, so the chart keeps drawing",
+      "series": [
+        {
+          "feed": "a"
+        },
+        {
+          "feed": "b"
+        }
+      ],
+      "availableFeedIds": [
+        "a"
+      ],
+      "expect": false
+    },
+    {
+      "name": "all missing: every series' feed is unavailable -> loud placeholder",
+      "series": [
+        {
+          "feed": "a"
+        },
+        {
+          "feed": "b"
+        }
+      ],
+      "availableFeedIds": [
+        "c"
+      ],
+      "expect": true
+    },
+    {
+      "name": "zero series (garbage/empty config) counts as all-missing",
+      "series": [],
+      "availableFeedIds": [
+        "a",
+        "b"
+      ],
+      "expect": true
+    },
+    {
+      "name": "a single resolvable series is enough on its own",
+      "series": [
+        {
+          "feed": "a"
+        }
+      ],
+      "availableFeedIds": [
+        "a"
+      ],
+      "expect": false
+    },
+    {
+      "name": "a single missing series has nothing else to fall back on",
+      "series": [
+        {
+          "feed": "a"
+        }
+      ],
+      "availableFeedIds": [
+        "b"
+      ],
+      "expect": true
+    },
+    {
+      "name": "a non-object series entry (garbage) counts as missing without throwing, but a real sibling still resolves",
+      "series": [
+        null,
+        {
+          "feed": "a"
+        }
+      ],
+      "availableFeedIds": [
+        "a"
+      ],
+      "expect": false
+    }
+  ],
+  "chartIsStale": [
+    {
+      "name": "no series stale",
+      "wires": [
+        {
+          "pushed_at": 99000,
+          "stale_after_s": 60
+        }
+      ],
+      "hubNow": 100000,
+      "expect": false
+    },
+    {
+      "name": "one of several stale is enough to flag the whole chart",
+      "wires": [
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        },
+        {
+          "pushed_at": 99000,
+          "stale_after_s": 60
+        }
+      ],
+      "hubNow": 100000,
+      "expect": true
+    },
+    {
+      "name": "all stale",
+      "wires": [
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        },
+        {
+          "pushed_at": 50000,
+          "stale_after_s": 10
+        }
+      ],
+      "hubNow": 100000,
+      "expect": true
+    },
+    {
+      "name": "a never-pushed series mixed with a stale one still detects the stale one",
+      "wires": [
+        {
+          "pushed_at": null,
+          "stale_after_s": 120
+        },
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        }
+      ],
+      "hubNow": 100000,
+      "expect": true
+    },
+    {
+      "name": "a never-pushed series alone is not stale (quiet, not stale — same discipline as every other widget)",
+      "wires": [
+        {
+          "pushed_at": null,
+          "stale_after_s": 120
+        }
+      ],
+      "hubNow": 100000,
+      "expect": false
+    },
+    {
+      "name": "missing wire entries (JSON null — a series whose feed isn't in the device's feed map) are safely ignored, not treated as stale",
+      "wires": [
+        null,
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        }
+      ],
+      "hubNow": 100000,
+      "expect": true
+    },
+    {
+      "name": "empty series list is never stale",
+      "wires": [],
+      "hubNow": 100000,
+      "expect": false
+    }
+  ],
+  "chartStaleAgeMs": [
+    {
+      "name": "nothing stale -> null (the renderer's signal to draw no age chip)",
+      "wires": [
+        {
+          "pushed_at": 99000,
+          "stale_after_s": 60
+        }
+      ],
+      "hubNow": 100000,
+      "expect": null
+    },
+    {
+      "name": "one stale series -> that series' own age",
+      "wires": [
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        },
+        {
+          "pushed_at": 99000,
+          "stale_after_s": 60
+        }
+      ],
+      "hubNow": 100000,
+      "expect": 10000
+    },
+    {
+      "name": "multiple stale series -> the OLDEST (max) age wins ('the stalest reading wins')",
+      "wires": [
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        },
+        {
+          "pushed_at": 50000,
+          "stale_after_s": 10
+        }
+      ],
+      "hubNow": 100000,
+      "expect": 50000
+    },
+    {
+      "name": "a never-pushed series mixed in does not contaminate the max (it isn't stale, so it isn't in the pool)",
+      "wires": [
+        {
+          "pushed_at": null,
+          "stale_after_s": 120
+        },
+        {
+          "pushed_at": 90000,
+          "stale_after_s": 5
+        }
+      ],
+      "hubNow": 100000,
+      "expect": 10000
+    },
+    {
+      "name": "empty series list -> null",
+      "wires": [],
+      "hubNow": 100000,
+      "expect": null
+    }
+  ],
+  "barWidth": [
+    {
+      "name": "single series, plenty of plot width per point -> no clamp",
+      "plotWidthPx": 600,
+      "pointCount": 100,
+      "seriesCount": 1,
+      "expect": 6
+    },
+    {
+      "name": "4 series sharing the same points -> no clamp",
+      "plotWidthPx": 800,
+      "pointCount": 40,
+      "seriesCount": 4,
+      "expect": 5
+    },
+    {
+      "name": "dense points hit the MIN clamp (BAR_MIN_W=2) so bars stay visible",
+      "plotWidthPx": 600,
+      "pointCount": 500,
+      "seriesCount": 4,
+      "expect": 2
+    },
+    {
+      "name": "sparse points hit the MAX clamp (BAR_MAX_W=10) so bars don't balloon",
+      "plotWidthPx": 600,
+      "pointCount": 1,
+      "seriesCount": 1,
+      "expect": 10
+    },
+    {
+      "name": "zero points: the denominator floor (8) avoids a divide-by-zero blowup, landing at the MIN clamp",
+      "plotWidthPx": 16,
+      "pointCount": 0,
+      "seriesCount": 1,
+      "expect": 2
+    },
+    {
+      "name": "non-numeric plotWidthPx degrades to 0 width, clamped to the floor, never throws",
+      "plotWidthPx": "bad",
+      "pointCount": 10,
+      "seriesCount": 2,
+      "expect": 2
+    }
+  ],
+  "barOffset": [
+    {
+      "name": "single series never offsets — nothing to fan out around",
+      "seriesIndex": 0,
+      "seriesCount": 1,
+      "barW": 5,
+      "expect": 0
+    },
+    {
+      "name": "4 series, first index gets the most negative offset",
+      "seriesIndex": 0,
+      "seriesCount": 4,
+      "barW": 4,
+      "expect": -7.5
+    },
+    {
+      "name": "4 series, second index",
+      "seriesIndex": 1,
+      "seriesCount": 4,
+      "barW": 4,
+      "expect": -2.5
+    },
+    {
+      "name": "4 series, third index (mirrors the second, opposite sign)",
+      "seriesIndex": 2,
+      "seriesCount": 4,
+      "barW": 4,
+      "expect": 2.5
+    },
+    {
+      "name": "4 series, last index gets the most positive offset (mirrors the first)",
+      "seriesIndex": 3,
+      "seriesCount": 4,
+      "barW": 4,
+      "expect": 7.5
+    }
+  ],
+  "clampPlotY": [
+    {
+      "name": "a point inside the plot rect is returned untouched",
+      "y": 55,
+      "plotY": 10,
+      "plotH": 100,
+      "expect": 55
+    },
+    {
+      "name": "exactly the top edge is inside (clamp is inclusive, not strict)",
+      "y": 10,
+      "plotY": 10,
+      "plotH": 100,
+      "expect": 10
+    },
+    {
+      "name": "exactly the bottom edge is inside (clamp is inclusive, not strict)",
+      "y": 110,
+      "plotY": 10,
+      "plotH": 100,
+      "expect": 110
+    },
+    {
+      "name": "above the rect (a spike past an explicit y_max) pins to the top edge, never over the axis labels",
+      "y": -40,
+      "plotY": 10,
+      "plotH": 100,
+      "expect": 10
+    },
+    {
+      "name": "below the rect (a dip past an explicit y_min) pins to the bottom edge, so a bar never hangs below the axis",
+      "y": 250,
+      "plotY": 10,
+      "plotH": 100,
+      "expect": 110
+    },
+    {
+      "name": "fractional pixel coordinates survive unchanged (no rounding here — this is a clamp, not a snap)",
+      "y": 55.5,
+      "plotY": 10.5,
+      "plotH": 100,
+      "expect": 55.5
+    },
+    {
+      "name": "a plot origin of 0 still clamps (the top edge is a real bound, not a falsy no-op)",
+      "y": -3,
+      "plotY": 0,
+      "plotH": 64,
+      "expect": 0
+    },
+    {
+      "name": "a degenerate (negative) plot height collapses onto the top edge instead of inverting the clamp",
+      "y": 55,
+      "plotY": 10,
+      "plotH": -20,
+      "expect": 10
+    },
+    {
+      "name": "non-numeric y degrades to 0 and is then clamped into the rect, never throws",
+      "y": "bad",
+      "plotY": 10,
+      "plotH": 100,
+      "expect": 10
+    }
+  ],
+  "feedTextSizes": [
+    {
+      "name": "scale 1 is the pre-scale release values",
+      "scale": 1,
+      "title": 17,
+      "body": 13,
+      "meta": 12
+    },
+    {
+      "name": "scale 2 doubles every size",
+      "scale": 2,
+      "title": 34,
+      "body": 26,
+      "meta": 24
+    },
+    {
+      "name": "scale 0.5: title/body shrink, meta hits FLOOR_LABEL",
+      "scale": 0.5,
+      "title": 10,
+      "body": 10,
+      "meta": 10
+    },
+    {
+      "name": "scale 1.5 rounds",
+      "scale": 1.5,
+      "title": 26,
+      "body": 20,
+      "meta": 18
+    },
+    {
+      "name": "clamps below SCALE_MIN",
+      "scale": 0.1,
+      "title": 10,
+      "body": 10,
+      "meta": 10
+    },
+    {
+      "name": "null scale is treated as 1",
+      "scale": null,
+      "title": 17,
+      "body": 13,
+      "meta": 12
+    }
+  ],
+  "feedCardHeight": [
+    {
+      "name": "scale 1 is FEED_CARD unchanged (overflow parity with the previous release)",
+      "scale": 1,
+      "expect": 132
+    },
+    {
+      "name": "scale 2 doubles the card",
+      "scale": 2,
+      "expect": 264
+    },
+    {
+      "name": "scale 0.5 halves it",
+      "scale": 0.5,
+      "expect": 66
+    },
+    {
+      "name": "FEED_CARD_MIN floors an absurd shrink",
+      "scale": 0.1,
+      "expect": 66
+    },
+    {
+      "name": "null scale is treated as 1",
+      "scale": null,
+      "expect": 132
+    }
+  ],
+  "rectToPx": [
+    {
+      "name": "full bleed on the A05 panel",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      },
+      "screenW": 720,
+      "screenH": 1600,
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 720,
+        "height": 1600
+      }
+    },
+    {
+      "name": "left half of an ODD width — adjacency case, left card",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 0.5,
+        "h": 1
+      },
+      "screenW": 721,
+      "screenH": 100,
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 361,
+        "height": 100
+      }
+    },
+    {
+      "name": "right half of an ODD width — starts exactly where the left ended",
+      "rect": {
+        "x": 0.5,
+        "y": 0,
+        "w": 0.5,
+        "h": 1
+      },
+      "screenW": 721,
+      "screenH": 100,
+      "expect": {
+        "left": 361,
+        "top": 0,
+        "width": 360,
+        "height": 100
+      }
+    },
+    {
+      "name": "thirds across 800 — first",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 0.333,
+        "h": 1
+      },
+      "screenW": 800,
+      "screenH": 480,
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 266,
+        "height": 480
+      }
+    },
+    {
+      "name": "thirds across 800 — second",
+      "rect": {
+        "x": 0.333,
+        "y": 0,
+        "w": 0.333,
+        "h": 1
+      },
+      "screenW": 800,
+      "screenH": 480,
+      "expect": {
+        "left": 266,
+        "top": 0,
+        "width": 267,
+        "height": 480
+      }
+    },
+    {
+      "name": "thirds across 800 — third carries the remainder to the exact edge",
+      "rect": {
+        "x": 0.666,
+        "y": 0,
+        "w": 0.334,
+        "h": 1
+      },
+      "screenW": 800,
+      "screenH": 480,
+      "expect": {
+        "left": 533,
+        "top": 0,
+        "width": 267,
+        "height": 480
+      }
+    },
+    {
+      "name": "clock strip on the A05 — full width, 17% tall",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 0.17
+      },
+      "screenW": 720,
+      "screenH": 1600,
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 720,
+        "height": 272
+      }
+    },
+    {
+      "name": "exact .5 boundary rounds half up",
+      "rect": {
+        "x": 0.5,
+        "y": 0.5,
+        "w": 0.5,
+        "h": 0.5
+      },
+      "screenW": 5,
+      "screenH": 5,
+      "expect": {
+        "left": 3,
+        "top": 3,
+        "width": 2,
+        "height": 2
+      }
+    },
+    {
+      "name": "minimum-size card on the e-ink panel",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "w": 0.05,
+        "h": 0.05
+      },
+      "screenW": 800,
+      "screenH": 480,
+      "expect": {
+        "left": 0,
+        "top": 0,
+        "width": 40,
+        "height": 24
+      }
+    },
+    {
+      "name": "bottom-right corner card reaches the exact far edge",
+      "rect": {
+        "x": 0.6,
+        "y": 0.75,
+        "w": 0.4,
+        "h": 0.25
+      },
+      "screenW": 720,
+      "screenH": 1600,
+      "expect": {
+        "left": 432,
+        "top": 1200,
+        "width": 288,
+        "height": 400
+      }
+    }
+  ],
+  "sizeT": [
+    {
+      "name": "1x1 template equivalent -> full anchor",
+      "w": 1,
+      "h": 1,
+      "expect": 1
+    },
+    {
+      "name": "2x1 template equivalent -> half anchor",
+      "w": 0.5,
+      "h": 1,
+      "expect": 0.75
+    },
+    {
+      "name": "1x2 template equivalent -> half anchor",
+      "w": 1,
+      "h": 0.5,
+      "expect": 0.75
+    },
+    {
+      "name": "2x2 template equivalent -> quadrant anchor",
+      "w": 0.5,
+      "h": 0.5,
+      "expect": 0.5
+    },
+    {
+      "name": "full-width clock strip",
+      "w": 1,
+      "h": 0.17,
+      "expect": 0.585
+    },
+    {
+      "name": "minimum card",
+      "w": 0.05,
+      "h": 0.05,
+      "expect": 0.05
+    }
+  ],
+  "rampAt": [
+    {
+      "name": "full anchor exact",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 1,
+      "expect": 120
+    },
+    {
+      "name": "half anchor exact",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 0.75,
+      "expect": 72
+    },
+    {
+      "name": "quadrant anchor exact",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 0.5,
+      "expect": 48
+    },
+    {
+      "name": "midpoint of half..full",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 0.875,
+      "expect": 96
+    },
+    {
+      "name": "midpoint of quadrant..half",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 0.625,
+      "expect": 60
+    },
+    {
+      "name": "clamps below the quadrant anchor",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 0.2,
+      "expect": 48
+    },
+    {
+      "name": "clamps above the full anchor",
+      "full": 120,
+      "half": 72,
+      "quadrant": 48,
+      "t": 1.5,
+      "expect": 120
+    },
+    {
+      "name": "small non-proportional ramp (CHART_RAMP.icon) keeps its own curve",
+      "full": 6,
+      "half": 5,
+      "quadrant": 4,
+      "t": 0.875,
+      "expect": 5.5
+    }
+  ],
+  "fitSteps": [
+    {
+      "name": "descends by 2 to the floor",
+      "start": 24,
+      "floor": 16,
+      "expect": [
+        24,
+        22,
+        20,
+        18,
+        16
+      ]
+    },
+    {
+      "name": "odd start still lands on the floor",
+      "start": 17,
+      "floor": 16,
+      "expect": [
+        17,
+        16
+      ]
+    },
+    {
+      "name": "start at the floor yields the floor alone",
+      "start": 16,
+      "floor": 16,
+      "expect": [
+        16
+      ]
+    },
+    {
+      "name": "start below the floor cannot go under it",
+      "start": 10,
+      "floor": 16,
+      "expect": [
+        16
+      ]
+    },
+    {
+      "name": "value_tile worst case from the largest ramp",
+      "start": 96,
+      "floor": 16,
+      "expect": [
+        96,
+        94,
+        92,
+        90,
+        88,
+        86,
+        84,
+        82,
+        80,
+        78,
+        76,
+        74,
+        72,
+        70,
+        68,
+        66,
+        64,
+        62,
+        60,
+        58,
+        56,
+        54,
+        52,
+        50,
+        48,
+        46,
+        44,
+        42,
+        40,
+        38,
+        36,
+        34,
+        32,
+        30,
+        28,
+        26,
+        24,
+        22,
+        20,
+        18,
+        16
+      ]
+    }
+  ],
+  "clockTimePx": [
+    {
+      "name": "full anchor, unscaled",
+      "t": 1,
+      "scale": 1,
+      "expect": 120
+    },
+    {
+      "name": "half anchor, unscaled",
+      "t": 0.75,
+      "scale": 1,
+      "expect": 72
+    },
+    {
+      "name": "quadrant anchor, unscaled",
+      "t": 0.5,
+      "scale": 1,
+      "expect": 48
+    },
+    {
+      "name": "full-width strip interpolates above quadrant",
+      "t": 0.585,
+      "scale": 1,
+      "expect": 56
+    },
+    {
+      "name": "scale 2 doubles the interpolated size",
+      "t": 1,
+      "scale": 2,
+      "expect": 240
+    },
+    {
+      "name": "scale 0.5 on the quadrant anchor is plain arithmetic, not the floor",
+      "_note": "clockTimePx's smallest reachable unscaled value is the quadrant anchor 48, and 48*0.5=24 is well above FLOOR_VALUE (16); the floor is unreachable by construction for this function",
+      "t": 0.5,
+      "scale": 0.5,
+      "expect": 24
+    }
+  ],
+  "clockDatePx": [
+    {
+      "name": "full anchor, unscaled",
+      "t": 1,
+      "scale": 1,
+      "expect": 16
+    },
+    {
+      "name": "half anchor, unscaled",
+      "t": 0.75,
+      "scale": 1,
+      "expect": 14
+    },
+    {
+      "name": "quadrant anchor, unscaled",
+      "t": 0.5,
+      "scale": 1,
+      "expect": 12
+    },
+    {
+      "name": "quadrant anchor floors at FLOOR_LABEL",
+      "t": 0.5,
+      "scale": 0.5,
+      "expect": 10
+    }
+  ]
+}

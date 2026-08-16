@@ -1,0 +1,17 @@
+/*
+ * THE BUILD CONFIG, AND ONLY THAT. `include: ["src"]` plus `rootDir: "src"` is what keeps test
+ * files out of `dist/` — do not add `test` here.
+ *
+ * It therefore CHECKS NOTHING under `test/`. `tsc -p tsconfig.json --noEmit` will exit 0 on a test
+ * file containing `const x: number = 'nope'`, which is how 112 test files went unchecked for the
+ * life of this project. The gate that covers them is `npm run typecheck` → `tsconfig.check.json`.
+ * Use that; this one is for `npm run build`.
+ */
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
+    "strict": true, "outDir": "dist", "rootDir": "src",
+    "declaration": false, "skipLibCheck": true, "types": ["node"]
+  },
+  "include": ["src"]
+}

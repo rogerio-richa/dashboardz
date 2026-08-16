@@ -1,0 +1,29 @@
+/*
+ * THE TYPECHECK GATE. `npm run typecheck` uses this; `npm run build` uses `tsconfig.json`.
+ *
+ * They are separate because the build must emit `src` and only `src` — `rootDir: "src"` and
+ * `outDir: "dist"` are what keep `test/` out of the published output, and they are also exactly
+ * what kept `test/` out of the TYPECHECK for the whole life of this project. 112 test files, in a
+ * repo whose test suite is its primary safety net, had no static checking of any kind: `tsc` never
+ * saw them and vitest strips types rather than checking them. Turning it on surfaced 218 errors.
+ *
+ * So this config checks the same sources under the same options, plus `test/`, and emits nothing.
+ * `scripts/check-typecheck-scope.mjs` runs first and fails if any file under `test/` is missing
+ * from the compiler's own file list — because the failure mode that matters here is not a config
+ * that errors, it is a config that exits 0 while checking less than you think (see the header of
+ * `admin/tsconfig.json` for the time that shipped a broken build).
+ */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    // Overrides the build's `rootDir: "src"`, which would otherwise reject every file under
+    // `test/` as being outside the compilation root.
+    "rootDir": ".",
+    // `test/widget-definitions.test.ts` imports `../admin/src/layout-edit.ts` by its real
+    // extension to compare the editor's widget list against the hub's. Legal only when nothing is
+    // emitted, which is the case here and is not the case for the build config.
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src", "test", "vitest.config.ts"]
+}
