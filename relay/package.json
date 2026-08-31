@@ -14,7 +14,7 @@
   "private": true,
   "dependencies": {
     "@fastify/websocket": "^11.3.0",
-    "fastify": "^5.10.0"
+    "fastify": "^5.12.1"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
