@@ -17,13 +17,13 @@
     "node": ">=22"
   },
   "dependencies": {
-    "ws": "^8.21.1"
+    "ws": "^8.23.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.2",
-    "@types/ws": "^8.18.1",
-    "tsx": "^4.23.1",
+    "@types/node": "^26.6.6",
+    "@types/ws": "^8.18.2",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^3.2.7"
+    "vitest": "^5.1.0"
   }
 }

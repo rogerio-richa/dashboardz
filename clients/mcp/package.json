@@ -17,11 +17,11 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0"
+    "@modelcontextprotocol/sdk": "^1.32.2"
   },
   "devDependencies": {
-    "@types/node": "^22.20.1",
+    "@types/node": "^26.6.6",
     "typescript": "^7.0.2",
-    "vitest": "^3.2.7"
+    "vitest": "^5.1.0"
   }
 }
